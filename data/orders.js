@@ -1,8 +1,5 @@
 const mongoose = require('./connect')
-const axios = require('axios')
-require('dotenv').config({path:'../.env'})
-
-const token = process.env.BL_TOKEN || ''
+const baselinker = require('./baselinker')
 
 const orderSchema = new mongoose.Schema({
   order_id: Number,
@@ -14,7 +11,7 @@ const orderSchema = new mongoose.Schema({
 	products: [{
 			name: String,
 			sku: String,
-			ean: Number,
+			ean: String,
       storage_id: Number,
 			storage_name: String,
 			price_netto_buy: Number,
@@ -23,8 +20,9 @@ const orderSchema = new mongoose.Schema({
 			price_brutto_sell: Number,
 			tax_rate: Number,
 			quantity: Number,
+      profit: Number,
 			location:String,
-			auction_id: Number
+			auction_id: String
   }]
 })
 
@@ -36,38 +34,6 @@ async function createOrder(data) {
   console.log(result)
 }
 
-async function convertToUnixTimestamp(year, month, day, hours = 0, minutes = 0, seconds = 0)
-{
-    return new Date(year, month-1, day, hours, minutes, seconds).getTime()/1000
-}
-
-function getOrdersPrepareData(from)
-{
-    return new URLSearchParams({
-        'method':'getOrders',
-        'parameters':`{"date_from":+${from}}`
-    }).toString().replaceAll('%2B','+')
-}
-
-async function getOrders(token, from)
-{
-    const info = getOrdersPrepareData(from)
-    try{
-    const load = await axios({
-        method: 'post',
-        url:'https://api.baselinker.com/connector.php',
-        headers:{
-        'X-BLToken': token,
-        },
-        data:info,
-        
-    });
-        return await load.data.orders;
-    } catch(err) {
-        console.log(err);
-    }
-}
-
 function convertOrder(order) {
   const productsArr = []
   order.products.forEach((e) => {
@@ -76,13 +42,14 @@ function convertOrder(order) {
       sku: e.sku,
       ean: e.ean,
       storage_id: e.storage_id,
-      storage_name: 'hurtownia',
+      storage_name: '',
       price_netto_buy:0,
       price_brutto_buy:0,
-      price_netto_sell: e.price_brutto / (1 + e.tax_rate / 100),
+      price_netto_sell: nettoPrice(e.price_brutto,e.tax_rate),
       price_brutto_sell: e.price_brutto,
       tax_rate: e.tax_rate,
       quantity: e.quantity,
+      profit: 0,
       location: e.location,
       auction_id: e.auction_id,
     })
@@ -96,18 +63,17 @@ function convertOrder(order) {
     delivery_price: order.delivery_price,
     products: productsArr
   }
-} 
+}
 
-
+const nettoPrice = (brutto,tax, place = 2) => {
+  return (brutto / (1 + tax / 100)).toFixed(place) * 1
+}
 
 async function loadOrders () {
-  const date = await convertToUnixTimestamp(2021,12,28)
-  const data = await getOrders(token, date)
+  const date = await baselinker.convertData(2021,12,28)
+  const data = await baselinker.getOrders(date)
   // data.forEach((e) => {
   //   createOrder(convertOrder(e))
   // })
-  createOrder(convertOrder(data[0]))
+  console.log(convertOrder(data[0]))
 }
-
-loadOrders();
-

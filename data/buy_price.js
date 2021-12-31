@@ -1,6 +1,4 @@
 const puppeteer = require('puppeteer');
-const ps = require('prompt-sync');
-const prompt = ps();
 
 const Wholesalers = require('./wholesalers')
 
@@ -34,53 +32,101 @@ const getPrices = async (products, Wholesaler) => {
 
     await page.goto(loginUrl, {waitUntil: 'networkidle2'});
 
-    if(Wholesaler.buttons.hasOwnProperty('preLogin'))
+    if(!Wholesaler.hasOwnProperty('specialLoginActions'))
     {
-        await page.click(Wholesaler.buttons.prelogin);
+        if(Wholesaler.buttons.hasOwnProperty('preLogin'))
+        {
+            await page.click(Wholesaler.buttons.prelogin);
+        }
+
+        await page.type(Wholesaler.selectors.toLogin, login);
+        await page.type(Wholesaler.selectors.toPassword, password);
+
+        await page.waitForSelector(Wholesaler.selectors.toWaitFor);
+        if(Wholesaler.buttons.cookies!=''){
+                await page.click(Wholesaler.buttons.cookies);
+        }
+
+        await page.click(Wholesaler.buttons.login);
+    }
+    else
+    {
+        Wholesaler.specialLoginAction()
     }
 
-    await page.type(Wholesaler.selectors.toLogin, login);
-    await page.type(Wholesaler.selectors.toPassword, password);
-    await page.waitForSelector(Wholesaler.selectors.toWaitFor);
-    if(Wholesaler.buttons.cookies!=''){
-            await page.click(Wholesaler.buttons.cookies);
-    }
-    await page.click(Wholesaler.buttons.login);
-    
-    await page.waitForNavigation({
-    waitUntil: 'networkidle2',
-    });
-    for(let i = 0; i < products.length; i++) {
-        let url = Wholesaler.urls.search+products[i].ean;
-        await page.goto(url, {waitUntil: 'networkidle2'});
-        await page.waitForTimeout(500);
-        let htmlText=await Wholesaler.priceGet(page);
-        if(htmlText!=0)
+
+    if(Wholesaler.urls.search!='')
+    {
+        await page.waitForNavigation({
+            waitUntil: 'networkidle2',
+            });
+
+        for(let i = 0; i < products.length; i++) 
         {
-            
-        }else if(products[i].sku!='')
-        {
-            let url = Wholesaler.urls.search+products[i].sku;
+            let url = Wholesaler.urls.search+products[i].ean;
             await page.goto(url, {waitUntil: 'networkidle2'});
             await page.waitForTimeout(500);
+            let htmlText='';
             htmlText=await Wholesaler.priceGet(page);
             
+            if(products[i].sku!='' && htmlText=='')
+            {
+                let url = Wholesaler.urls.search+products[i].sku;
+                await page.goto(url, {waitUntil: 'networkidle2'});
+                await page.waitForTimeout(500);
+                htmlText=await Wholesaler.priceGet(page);
+                
+            }
+
+            
         }
-        await Wholesaler.priceDressing(products, htmlText, i);
-        //console.log(`Sell price: ${products[i].sell_price}\nBuy price: ${products[i].buy_price}\nSaldo: ${products[i].sell_price-products[i].buy_price}`);
-        
-        if(products[i].buy_price!=0)
+    }
+    
+    if(Wholesaler.selectors.search)
+    {
+        await page.waitForNavigation({
+            waitUntil: 'networkidle2',
+            });
+        if(Wholesaler.url.remoteSearch)
         {
-            products[i].saldo=(products[i].sell_price-products[i].buy_price).toFixed(2);
-            products[i].saldo = parseFloat(products[i].saldo);
+            await page.goto(Wholesaler.url.remoteSearch, {waitUntil: 'networkidle2'});
         }
+
+        for(let i = 0; i < products.length; i++) 
+        {
+            page.type(Wholesaler.selectors.search,products[i].ean)
+            page.click(Wholesaler.buttons.search);
+            await page.waitForTimeout(500);
+            let htmlText='';
+            htmlText=await Wholesaler.priceGet(page);
+            
+            if(products[i].sku!='' && htmlText=='')
+            {
+                page.type(Wholesaler.selectors.search,products[i].sku)
+                page.click(Wholesaler.buttons.search)
+                await page.waitForTimeout(500);
+                htmlText=await Wholesaler.priceGet(page);
+            }
+
+            
+        }
+    }
+    
+    await Wholesaler.priceDressing(products, htmlText, i);
+    //console.log(`Sell price: ${products[i].sell_price}\nBuy price: ${products[i].buy_price}\nSaldo: ${products[i].sell_price-products[i].buy_price}`);
+    
+    if(products[i].buy_price!=0)
+    {
+        products[i].saldo=(products[i].sell_price-products[i].buy_price).toFixed(2);
+        products[i].saldo = parseFloat(products[i].saldo);
     }
 
     if(Wholesaler.buttons.hasOwnProperty('logout'))
     {
         await page.click(Wholesaler.buttons.logout);
     }
-    else{
+    else
+    {
         await page.goto(logoutUrl, {waitUntil: 'networkidle2'});
     }
     
@@ -93,5 +139,5 @@ const getPrices = async (products, Wholesaler) => {
 
 
 (async()=>{
-    console.log(await getPrices(products, Wholesalers.hurtel));
+    console.log(await getPrices(products, Wholesalers.bossoftoys));
 })();

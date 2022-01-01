@@ -26,9 +26,9 @@ const Wholesalers={
         
         async priceGet(page){
             return await page.evaluate(()=>{
-                if(document.querySelector(this.selectors.toPrice)!=null)
+                if(document.querySelector('#search > div > div.product__prices > strong.price')!=null)
                 {
-                    return document.querySelector(this.selectors.toPrice).textContent;
+                    return document.querySelector('#search > div > div.product__prices > strong.price').textContent;
                 } else return '';
                 
                 
@@ -76,9 +76,9 @@ const Wholesalers={
 
         async priceGet(page){
             return await page.evaluate(()=>{
-                if(document.querySelector(this.selectors.toPrice)!=null)
+                if(document.querySelector('#price-count')!=null)
                 {
-                    return parseFloat(document.querySelector(this.selectors.toPrice).textContent)
+                    return parseFloat(document.querySelector('#price-count').textContent)
                 } else return '';
                 
                 
@@ -125,7 +125,7 @@ const Wholesalers={
             let loginUrl = this.urls.login;
             await page.goto(loginUrl, {waitUntil: 'networkidle2'});
             await page.evaluate(()=>{
-                return document.querySelector('#cookies_info > p > a.close').click();
+                return document.querySelector(this.buttons.extraCookies).click();
             })
             await page.waitForNavigation({
                 waitUntil: 'networkidle0',
@@ -134,9 +134,9 @@ const Wholesalers={
 
         async priceGet(page){
             return await page.evaluate(()=>{
-                if(document.querySelector(this.selectors.toPrice)!=null)
+                if(document.querySelector('#search > div > div.product__prices > strong.price')!=null)
                 {
-                    return document.querySelector(this.selectors.toPrice).textContent;
+                    return document.querySelector('#search > div > div.product__prices > strong.price').textContent;
                 } else return '';
                 
                 
@@ -185,9 +185,9 @@ const Wholesalers={
         
         async priceGet(page){
             return await page.evaluate(()=>{
-                if(document.querySelector(this.selectors.toPrice)!=null)
+                if(document.querySelector('#search > div > div.product__prices > strong.price')!=null)
                 {
-                    return document.querySelector(this.selectors.toPrice).textContent;
+                    return document.querySelector('#search > div > div.product__prices > strong.price').textContent;
                 } else return '';
                 
                 
@@ -236,9 +236,9 @@ const Wholesalers={
         
         async priceGet(page){
             return await page.evaluate(()=>{
-                if(document.querySelector("span.tax > span")!=null)
+                if(document.querySelector('span.tax > span')!=null)
                 {
-                    return document.querySelector("span.tax > span").textContent;
+                    return document.querySelector('span.tax > span').textContent;
                 } else return '';
                 
                 
@@ -280,9 +280,9 @@ const Wholesalers={
         
         async priceGet(page){
             return await page.evaluate(()=>{
-                if(document.querySelector(this.selectors.toPrice)!=null)
+                if(document.querySelector('strong.price')!=null)
                 {
-                    return document.querySelector(this.selectors.toPrice).textContent;
+                    return document.querySelector('strong.price').textContent;
                 } else return '';
                 
                 
@@ -384,9 +384,9 @@ const Wholesalers={
         
         async priceGet(page){
             return await page.evaluate(()=>{
-                if(this.selectors.toPrice)
+                if(document.querySelector('#projector_price_value')!=null)
                 {
-                    return document.querySelector(this.selectors.toPrice).textContent;
+                    return document.querySelector('#projector_price_value').textContent;
                 } else return '';
                 
                 
@@ -418,8 +418,8 @@ const Wholesalers={
             logout:'https://is3.action.pl/user/signout'
         },
         access:{
-            login:process.dotenv.action_login || '',
-            password:process.dotenv.action_pass || ''
+            login:process.env.action_login || '',
+            password:process.env.action_pass || ''
         },
         buttons: {
             cookies:'',
@@ -434,9 +434,9 @@ const Wholesalers={
         
         async priceGet(page){
             return await page.evaluate(()=>{
-                if(document.querySelector(this.selectors.toPrice)!=null)
+                if(document.querySelector('#projector_price_value')!=null)
                 {
-                    return document.querySelector(this.selectors.toPrice).textContent;
+                    return document.querySelector('#projector_price_value').textContent;
                 } else return '';
                 
                 
@@ -464,12 +464,12 @@ const Wholesalers={
     bossoftoys:{
         urls:{
             login: 'https://b2b.bossoftoys.pl/',
-            search:'https://is3.action.pl/products?keyword=',
+            remoteSearch:'https://b2b.bossoftoys.pl/index.php/cennik',
             logout:'https://b2b.bossoftoys.pl/index.php/logout'
         },
         access:{
-            login:process.dotenv.bossoftoys_login || '',
-            password:process.dotenv.bossoftoys_pass || ''
+            login:process.env.bossoftoys_login || '',
+            password:process.env.bossoftoys_pass || ''
         },
         buttons: {
             cookies:'',
@@ -480,15 +480,18 @@ const Wholesalers={
             toWaitFor:'#login',
             toLogin:'#login',
             toPassword:'#password',
-            toPrice:'#grid > div.table-wrapper > table > tbody > tr:nth-child(1) > td:nth-child(6)',
+            toPrice:'.responsive-details-value-inner',
             search:'#txtSearchString'
         },
+        remoteSearch:true,
         
         async priceGet(page){
+            await page.waitForTimeout(500);
+            await page.evaluate( () => document.querySelector("#txtSearchString").value = "")
             return await page.evaluate(()=>{
-                if(document.querySelector("#search > div > div.product__prices > strong")!=null)
+                if(document.querySelectorAll('.responsive-details-value-inner')[5]!=null)
                 {
-                    return document.querySelector("#search > div > div.product__prices > strong.price").textContent;
+                    return document.querySelectorAll('.responsive-details-value-inner')[5].textContent
                 } else return '';
                 
                 
@@ -520,8 +523,8 @@ const Wholesalers={
             logout:'https://ombero.pl/_login/logout'
         },
         access:{
-            login:process.dotenv.ombero_login || '',
-            password:process.dotenv.ombero_pass || ''
+            login:process.env.ombero_login || '',
+            password:process.env.ombero_pass || ''
         },
         buttons: {
             cookies:'#topInfo0 > div:nth-child(3)',
@@ -536,9 +539,9 @@ const Wholesalers={
         
         async priceGet(page){
             return await page.evaluate(()=>{
-                if(document.querySelector(this.selectors.toPrice)!=null)
+                if(document.querySelector('#content > div.listning-boxes.container-fluid > div > div > article > div.product-info.row > div:nth-child(3) > div.view_price_global > div.view_price > span:nth-child(1)')!=null)
                 {
-                    return document.querySelector(this.selectors.toPrice).textContent;
+                    return document.querySelector('#content > div.listning-boxes.container-fluid > div > div > article > div.product-info.row > div:nth-child(3) > div.view_price_global > div.view_price > span:nth-child(1)').textContent;
                 } else return '';
             })
         },
@@ -568,8 +571,8 @@ const Wholesalers={
             logout:'https://vivab2b.pl/?a=klient.logout'
         },
         access:{
-            login:process.dotenv.vivab2b_login || '',
-            password:process.dotenv.vivab2b_pass || ''
+            login:process.env.vivab2b_login || '',
+            password:process.env.vivab2b_pass || ''
         },
         buttons: {
             cookies:'#selly-cookies > div > a',
@@ -584,9 +587,9 @@ const Wholesalers={
         
         async priceGet(page){
             return await page.evaluate(()=>{
-                if(document.querySelector(this.selectors.toPrice)!=null)
+                if(document.querySelector('body > div.container-max-default.clearfix > div > div.container-main > article > div > form > div > div > div.product-description > div > div.price > span:nth-child(3) > strong')!=null)
                 {
-                    return document.querySelector(this.selectors.toPrice).textContent;
+                    return document.querySelector('body > div.container-max-default.clearfix > div > div.container-main > article > div > form > div > div > div.product-description > div > div.price > span:nth-child(3) > strong').textContent;
                 } else return '';
             })
         },
@@ -617,8 +620,8 @@ const Wholesalers={
             logout:'https://ftoys.pl/logout'
         },
         access:{
-            login:process.dotenv.ftoys_login || '',
-            password:process.dotenv.ftoys_pass || ''
+            login:process.env.ftoys_login || '',
+            password:process.env.ftoys_pass || ''
         },
         buttons: {
             cookies:'#CookieAlertClose',
@@ -633,9 +636,9 @@ const Wholesalers={
         
         async priceGet(page){
             return await page.evaluate(()=>{
-                if(document.querySelector(this.selectors.toPrice)!=null)
+                if(document.querySelector('#tabela-lista-produktow > tbody > tr > td.r.CenaPoRabacie.fit-content > div > div.brutto')!=null)
                 {
-                    return document.querySelector(this.selectors.toPrice).textContent;
+                    return document.querySelector('#tabela-lista-produktow > tbody > tr > td.r.CenaPoRabacie.fit-content > div > div.brutto').textContent;
                 } else return '';
             })
         },
@@ -666,9 +669,9 @@ const Wholesalers={
             logout:'http://b2btrade.eu/Account/Logout'
         },
         access:{
-            login:process.dotenv.b2btrade_login || '',
-            employee:process.dotenv.b2btrade_employee || '',
-            password:process.dotenv.b2btrade_pass || ''
+            login:process.env.b2btrade_login || '',
+            employee:process.env.b2btrade_employee || '',
+            password:process.env.b2btrade_pass || ''
         },
         buttons: {
             cookies:'#selly-cookies > div > a',
@@ -727,8 +730,8 @@ const Wholesalers={
             logout:'https://sklep.telforceone.pl/pl-pl/#'
         },
         access:{
-            login:process.dotenv.telforceone_login || '',
-            password:process.dotenv.telforceone_pass || ''
+            login:process.env.telforceone_login || '',
+            password:process.env.telforceone_pass || ''
         },
         buttons: {
             cookies:'',
@@ -744,9 +747,9 @@ const Wholesalers={
         
         async priceGet(page){
             return await page.evaluate(()=>{
-                if(document.querySelector(this.selectors.toPrice)!=null)
+                if(document.querySelector('#gridView > li > div.fr.mt22 > span')!=null)
                 {
-                    return document.querySelector(this.selectors.toPrice).textContent;
+                    return document.querySelector('#gridView > li > div.fr.mt22 > span').textContent;
                 } else return '';
             })
         },
@@ -773,12 +776,12 @@ const Wholesalers={
     lamex:{
         urls:{
             login: 'https://lamex.pl/login',
-            search:'https://lamex.pl/search/7611682290028',
+            search:'https://lamex.pl/search/',
             logout:'https://lamex.pl/logout'
         },
         access:{
-            login:process.dotenv.lamex_login || '',
-            password:process.dotenv.lamex_pass || ''
+            login:process.env.lamex_login || '',
+            password:process.env.lamex_pass || ''
         },
         buttons: {
             cookies:'#cookies > div > a',
@@ -793,9 +796,9 @@ const Wholesalers={
         
         async priceGet(page){
             return await page.evaluate(()=>{
-                if(document.querySelectorAll(this.selectors.toPrice)[1]!=null)
+                if(document.querySelectorAll('.price')[1]!=null)
                 {
-                    return document.querySelectorAll(this.selectors.toPrice)[1].innerText;
+                    return document.querySelectorAll('.price')[1].innerText;
                 } else return '';
             })
         },
@@ -820,6 +823,156 @@ const Wholesalers={
         }
     },
 
+    lechpol:{
+        urls:{
+            login: 'https://www.lechpol.pl/pl/login',
+            search:'https://www.lechpol.pl/pl/query/',
+            logout:'https://www.lechpol.pl/pl/logout'
+        },
+        access:{
+            login:process.env.lechpol_login || '',
+            password:process.env.lechpol_pass || ''
+        },
+        buttons: {
+            cookies:'',
+            login:'#my-page > div > div > div.col-12.col-lg-6.offset-lg-1 > form > div.text-center.d-sm-flex.mb-5.align-items-center.justify-content-between > button',
+        },
+        selectors:{
+            toWaitFor:'',
+            toLogin:'#login_email',
+            toPassword:'#login_password',
+            toPrice:''
+        },
+        
+        async priceGet(page){
+            return await page.evaluate(()=>{
+                if(document.querySelectorAll('.price')[3]!=null)
+                {
+                    return document.querySelectorAll('.price')[3].innerText;
+                } else return '';
+            })
+        },
+        
+        priceDressing(products, htmlText, index){
+            if(htmlText !='') {
+                const priceText = htmlText
+                
+                if(priceText[0] == '0') {
+                    products[index].buy_price = parseFloat(priceText.slice(2))
+                } else {
+                    products[index].buy_price = parseFloat(priceText).toFixed(2)
+                }
+                
+                products[index].buy_price = (products[index].buy_price).toFixed(2);
+                products[index].buy_price = parseFloat(products[index].buy_price);
+            } else {
+                products[index].buy_price = 0;
+            }
+            
+            return products;
+        }
+    },
+    
+    amio:{
+        urls:{
+            login: 'https://amio.pl/logowanie/7',
+            search:'https://amio.pl/produkty/2?search=',
+            logout:'https://lamex.pl/logout'
+        },
+        access:{
+            login:process.env.amio_login || '',
+            password:process.env.amio_pass || ''
+        },
+        buttons: {
+            cookies:'body > footer > div.message-popup-ui.cookie-notice-ui.box-ui.message-popup-lq.bottom-ui > i',
+            login:'#main > div > div > div > div > button > span',
+            logout:'body > header > div.header-ui-line-bg > div > ul > li.last-ui.f-right-ui > div > button > span > span'
+        },
+        selectors:{
+            toWaitFor:'body > footer > div.message-popup-ui.cookie-notice-ui.box-ui.message-popup-lq.bottom-ui > i',
+            toLogin:'#main > div > div > div > div > div:nth-child(2) > input',
+            toPassword:'#main > div > div > div > div > div.login-password-container-ui > input',
+            toPrice:'.price-ui'
+        },
+        
+        async priceGet(page){
+            return await page.evaluate(()=>{
+                if(document.querySelectorAll('.price-ui')[0]!=null)
+                {
+                    return document.querySelectorAll('.price-ui')[0].innerText;
+                } else return '';
+            })
+        },
+        
+        priceDressing(products, htmlText, index){
+            if(htmlText !='') {
+                const priceText = htmlText.slice(0,htmlText.indexOf('PLN')-1)
+                
+                if(priceText[0] == '0') {
+                    products[index].buy_price = parseFloat(priceText.slice(2))
+                } else {
+                    products[index].buy_price = parseFloat(priceText).toFixed(2)
+                }
+                
+                products[index].buy_price = (products[index].buy_price).toFixed(2);
+                products[index].buy_price = parseFloat(products[index].buy_price);
+            } else {
+                products[index].buy_price = 0;
+            }
+            
+            return products;
+        }
+    },
+
+    fddistribution:{
+        urls:{
+            login: 'https://fd-distribution.pl/konto.html?redirect=YTowOnt9',
+            search:'https://fd-distribution.pl/?f=&a=sklep&k=0&x=0&y=0&q=',
+            logout:'https://fd-distribution.pl/a?klient.logout'
+        },
+        access:{
+            login:process.env.fddistribution_login || '',
+            password:process.env.fddistribution_pass || ''
+        },
+        buttons: {
+            cookies:'#selly-cookies > div > a',
+            login:'#login-box > form > ul > li:nth-child(3) > input',
+        },
+        selectors:{
+            toWaitFor:'#selly-cookies > div > a',
+            toLogin:'#llogin',
+            toPassword:'#lpassword',
+            toPrice:'.price-ui'
+        },
+        
+        async priceGet(page){
+            return await page.evaluate(()=>{
+                if(document.querySelector('span.item.itemAdd > strong')!=null)
+                {
+                    return document.querySelector('span.item.itemAdd > strong').innerText;
+                } else return '';
+            })
+        },
+        
+        priceDressing(products, htmlText, index){
+            if(htmlText !='') {
+                const priceText = htmlText.slice(0,htmlText.indexOf('zł')-1)
+                
+                if(priceText[0] == '0') {
+                    products[index].buy_price = parseFloat(priceText.slice(2))
+                } else {
+                    products[index].buy_price = parseFloat(priceText).toFixed(2)
+                }
+                
+                products[index].buy_price = (products[index].buy_price).toFixed(2);
+                products[index].buy_price = parseFloat(products[index].buy_price);
+            } else {
+                products[index].buy_price = 0;
+            }
+            
+            return products;
+        }
+    },
 }
 
 module.exports=Wholesalers;

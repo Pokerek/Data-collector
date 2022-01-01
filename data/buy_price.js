@@ -55,7 +55,7 @@ const getPrices = async (products, Wholesaler) => {
     }
 
 
-    if(Wholesaler.urls.search!='')
+    if(Wholesaler.urls.search)
     {
         await page.waitForNavigation({
             waitUntil: 'networkidle2',
@@ -78,48 +78,52 @@ const getPrices = async (products, Wholesaler) => {
                 
             }
 
+            await Wholesaler.priceDressing(products, htmlText, i);
+            //console.log(`Sell price: ${products[i].sell_price}\nBuy price: ${products[i].buy_price}\nSaldo: ${products[i].sell_price-products[i].buy_price}`);
             
+            if(products[i].buy_price!=0)
+            {
+                products[i].saldo=(products[i].sell_price-products[i].buy_price).toFixed(2);
+                products[i].saldo = parseFloat(products[i].saldo);
+            }
         }
-    }
-    
-    if(Wholesaler.selectors.search)
+    }else if(Wholesaler.hasOwnProperty('remoteSearch'))
     {
-        await page.waitForNavigation({
-            waitUntil: 'networkidle2',
-            });
-        if(Wholesaler.url.remoteSearch)
-        {
-            await page.goto(Wholesaler.url.remoteSearch, {waitUntil: 'networkidle2'});
-        }
+        await page.goto(Wholesaler.urls.remoteSearch, {waitUntil: 'networkidle2'});
 
         for(let i = 0; i < products.length; i++) 
         {
+
+            await page.waitForSelector(Wholesaler.selectors.search);
+
             page.type(Wholesaler.selectors.search,products[i].ean)
+            await page.waitForTimeout(5000);
             page.click(Wholesaler.buttons.search);
-            await page.waitForTimeout(500);
+            await page.waitForTimeout(2000);
             let htmlText='';
             htmlText=await Wholesaler.priceGet(page);
             
             if(products[i].sku!='' && htmlText=='')
             {
                 page.type(Wholesaler.selectors.search,products[i].sku)
+                await page.waitForTimeout(5000);
                 page.click(Wholesaler.buttons.search)
-                await page.waitForTimeout(500);
+                await page.waitForTimeout(2000);
                 htmlText=await Wholesaler.priceGet(page);
             }
 
+            await Wholesaler.priceDressing(products, htmlText, i);
+            //console.log(`Sell price: ${products[i].sell_price}\nBuy price: ${products[i].buy_price}\nSaldo: ${products[i].sell_price-products[i].buy_price}`);
             
+            if(products[i].buy_price!=0)
+            {
+                products[i].saldo=(products[i].sell_price-products[i].buy_price).toFixed(2);
+                products[i].saldo = parseFloat(products[i].saldo);
+            }
         }
     }
     
-    await Wholesaler.priceDressing(products, htmlText, i);
-    //console.log(`Sell price: ${products[i].sell_price}\nBuy price: ${products[i].buy_price}\nSaldo: ${products[i].sell_price-products[i].buy_price}`);
     
-    if(products[i].buy_price!=0)
-    {
-        products[i].saldo=(products[i].sell_price-products[i].buy_price).toFixed(2);
-        products[i].saldo = parseFloat(products[i].saldo);
-    }
 
     if(Wholesaler.buttons.hasOwnProperty('logout'))
     {
@@ -139,5 +143,5 @@ const getPrices = async (products, Wholesaler) => {
 
 
 (async()=>{
-    console.log(await getPrices(products, Wholesalers.bossoftoys));
+    console.log(await getPrices(products, Wholesalers.ombero));
 })();

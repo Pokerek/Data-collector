@@ -27,20 +27,6 @@ const products = [
         sell_price: 116.53,
         buy_price: 0
     },
-    {
-        ean: '5907632923118',
-        sku:'33401',
-        name: 'Perfect Bust 90kaps POWIĘKSZENIE PIERSI',
-        sell_price: 124.40,
-        buy_price: 0
-    },
-    {
-        ean: '5907632923002',
-        sku:'33408',
-        name: 'Penilarge kapsułki 60szt',
-        sell_price: 116.53,
-        buy_price: 0
-    },
 ];
 
 module.exports=products;

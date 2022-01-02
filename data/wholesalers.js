@@ -124,12 +124,8 @@ const Wholesalers={
         async extraCookieHandler(page){
             let loginUrl = this.urls.login;
             await page.goto(loginUrl, {waitUntil: 'networkidle2'});
-            await page.evaluate(()=>{
-                return document.querySelector(this.buttons.extraCookies).click();
-            })
-            await page.waitForNavigation({
-                waitUntil: 'networkidle0',
-            });
+            await page.waitForSelector(this.buttons.extraCookies);
+            await page.click(this.buttons.extraCookies);
         },
 
         async priceGet(page){
@@ -307,10 +303,10 @@ const Wholesalers={
             return products;
         }
     },
-    /*abonline:{
+    abonline:{
         urls:{
             login: 'https://www.abonline.pl/',
-            search:'https://www.abonline.pl/offer/pl/0/#/list/?srch=',
+            remoteSearch:'https://www.abonline.pl/offer/pl/0/#/list/?srch=',
             logout:''
         },
         access:{
@@ -321,27 +317,26 @@ const Wholesalers={
             cookies:'#accept_cookie',
             login:'#jsBtnSiteLogin',
             search:'#btnSearchBoxSearch',
-            logout:'#divLogout > div.logoutBtn > form > button'
+            logout:'.btnTopLogout',
+            search:'#btnSearchBoxSearch'
         },
         selectors:{
             toSearch:'#inpSearchBoxPhrase',
             toWaitFor:'#jsBtnSiteLogin',
             toLogin:'#jsFrmLoginLogin',
             toPassword:'#jsFrmLoginPass',
-            toPrice:'#productGrossPriceID > div > span'
+            toPrice:'#productGrossPriceID > div > span',
+            search:'#inpSearchBoxPhrase'
         },
-        specialEncryption:true,
-
-        encrypt(val)
-        {
-            return (Buffer.from(val).toString('base64')).replaceAll('=','%7Beq%7D')
-        },
+        remoteSearch:true,
         
         async priceGet(page){
+            await page.waitForTimeout(500);
+            await page.evaluate( () => document.querySelector("#inpSearchBoxPhrase").value = "")
             return await page.evaluate(()=>{
                 if(document.querySelector('#productGrossPriceID > div > span')!=null)
                 {
-                    return document.querySelector('#productGrossPriceID > div > span').textContent;
+                    return document.querySelector('#productGrossPriceID > div > span').innerText;
                 } else return '';
                 
                 
@@ -349,9 +344,10 @@ const Wholesalers={
         },
 
         priceDressing(products, htmlText, index){
-            if(isNaN(htmlText))
+            if(htmlText !='')
             {
-                products[index].buy_price = parseFloat(htmlText);
+                products[index].buy_price = htmlText.slice(0,htmlText.indexOf('zł')-1);
+                products[index].buy_price = parseFloat(products[index].buy_price);
                 products[index].buy_price = (products[index].buy_price).toFixed(2);
                 products[index].buy_price = parseFloat(products[index].buy_price);
             }else{
@@ -360,7 +356,7 @@ const Wholesalers={
 
             return products;
         }
-    },*/
+    },
     tayma:{
         urls:{
             login: 'https://tayma.pl/pl/signin.html',
@@ -834,6 +830,8 @@ const Wholesalers={
             password:process.env.lechpol_pass || ''
         },
         buttons: {
+            extraCookies:'div.modal-footer > button',
+            notifications:'button.wpc_w_f_c_b.wpc_w_f_c_b-n',
             cookies:'',
             login:'#my-page > div > div > div.col-12.col-lg-6.offset-lg-1 > form > div.text-center.d-sm-flex.mb-5.align-items-center.justify-content-between > button',
         },
@@ -842,6 +840,14 @@ const Wholesalers={
             toLogin:'#login_email',
             toPassword:'#login_password',
             toPrice:''
+        },
+
+        async extraCookieHandler(page){
+            let loginUrl = this.urls.login;
+            await page.goto(loginUrl, {waitUntil: 'networkidle2'});
+            await page.waitForSelector(this.buttons.extraCookies);
+            await page.click(this.buttons.extraCookies);
+            
         },
         
         async priceGet(page){
@@ -877,7 +883,7 @@ const Wholesalers={
         urls:{
             login: 'https://amio.pl/logowanie/7',
             search:'https://amio.pl/produkty/2?search=',
-            logout:'https://lamex.pl/logout'
+            logout:''
         },
         access:{
             login:process.env.amio_login || '',
@@ -950,6 +956,493 @@ const Wholesalers={
                 if(document.querySelector('span.item.itemAdd > strong')!=null)
                 {
                     return document.querySelector('span.item.itemAdd > strong').innerText;
+                } else return '';
+            })
+        },
+        
+        priceDressing(products, htmlText, index){
+            if(htmlText !='') {
+                const priceText = htmlText.slice(0,htmlText.indexOf('zł')-1)
+                
+                if(priceText[0] == '0') {
+                    products[index].buy_price = parseFloat(priceText.slice(2))
+                } else {
+                    products[index].buy_price = parseFloat(priceText).toFixed(2)
+                }
+                
+                products[index].buy_price = (products[index].buy_price).toFixed(2);
+                products[index].buy_price = parseFloat(products[index].buy_price);
+            } else {
+                products[index].buy_price = 0;
+            }
+            
+            return products;
+        }
+    },
+    
+    aptel:{
+        urls:{
+            login: 'http://aptel.pl/Default.B2B.aspx',
+            search:'http://aptel.pl/ProduktyWyszukiwanie.aspx?search=',
+            logout:''
+        },
+        access:{
+            login:process.env.aptel_login || '',
+            password:process.env.aptel_pass || ''
+        },
+        buttons: {
+            cookies:'#cookies_info_close_pl',
+            login:'#ctl00_MainContent_btZaloguj_Button',
+            logout:'#belkaGornaNL_wyloguj > a'
+        },
+        selectors:{
+            toWaitFor:'#cookies_info_close_pl',
+            toLogin:'#ctl00_MainContent_tbLogin',
+            toPassword:'#ctl00_MainContent_tbHaslo',
+            toPrice:''
+        },
+        
+        async priceGet(page){
+            return await page.evaluate(()=>{
+                if(document.querySelectorAll("em")[11]!=null)
+                {
+                    return document.querySelectorAll("em")[11].innerText;
+                } else return '';
+            })
+        },
+        
+        priceDressing(products, htmlText, index){
+            if(htmlText !='') {
+                const priceText = htmlText.slice(0,htmlText.indexOf('PLN')-1)
+                
+                if(priceText[0] == '0') {
+                    products[index].buy_price = parseFloat(priceText.slice(2))
+                } else {
+                    products[index].buy_price = parseFloat(priceText).toFixed(2)
+                }
+                
+                products[index].buy_price = (products[index].buy_price).toFixed(2);
+                products[index].buy_price = parseFloat(products[index].buy_price);
+            } else {
+                products[index].buy_price = 0;
+            }
+            
+            return products;
+        }
+    },
+
+    iks2:{
+        urls:{
+            login: 'https://iks2.pl/pl/order/login.html',
+            search:'https://iks2.pl/pl/szukaj/?search_lang=pl&search=product&string=',
+            logout:'https://iks2.pl/pl/order/logout.html'
+        },
+        access:{
+            login:process.env.iks2_login || '',
+            password:process.env.iks2_pass || ''
+        },
+        buttons: {
+            cookies:'',
+            login:'#login_form > div > div.orderForm__buttons.orderForm__buttons--pt.row.h_end > label',
+        },
+        selectors:{
+            toWaitFor:'',
+            toLogin:'#login_form > div > div:nth-child(1) > div > div.orderForm__field > input',
+            toPassword:'#login_form > div > div:nth-child(2) > div > div.orderForm__field > input',
+            toPrice:'span.productFull__quick_infoBox--price'
+        },
+        
+        async priceGet(page){
+            return await page.evaluate(()=>{
+                if(document.querySelectorAll('span.productFull__quick_infoBox--price')[0]!=null)
+                {
+                    return document.querySelectorAll('span.productFull__quick_infoBox--price')[0].innerText;
+                } else return '';
+            })
+        },
+        
+        priceDressing(products, htmlText, index){
+            if(htmlText !='') {
+                const priceText = htmlText.slice(0,htmlText.indexOf('ZŁ')-1)
+                
+                if(priceText[0] == '0') {
+                    products[index].buy_price = parseFloat(priceText.slice(2))
+                } else {
+                    products[index].buy_price = parseFloat(priceText).toFixed(2)
+                }
+                
+                products[index].buy_price = (products[index].buy_price).toFixed(2);
+                products[index].buy_price = parseFloat(products[index].buy_price);
+            } else {
+                products[index].buy_price = 0;
+            }
+            
+            return products;
+        }
+    },
+
+    sonia:{
+        urls:{
+            login: 'https://b2b.sonia.pl/',
+            remoteSearch:'https://b2b.sonia.pl/katalog.html',
+            logout:'https://b2b.sonia.pl/wyloguj.html'
+        },
+        access:{
+            login:process.env.sonia_login || '',
+            password:process.env.sonia_pass || ''
+        },
+        buttons: {
+            cookies:'',
+            login:'#logowanie > form > table > tbody > tr:nth-child(1) > td:nth-child(6) > input',
+            search:'body > center > table > tbody > tr:nth-child(1) > td:nth-child(2) > div > div:nth-child(8) > form > p > input.zakres-nazwa-button'
+        },
+        selectors:{
+            toWaitFor:'',
+            toLogin:'#log_email',
+            toPassword:'#log_paswd',
+            toPrice:'document.querySelectorAll("td.col-cena.col-cena-bg-gazetka")[0]',
+            search:'body > center > table > tbody > tr:nth-child(1) > td:nth-child(2) > div > div:nth-child(8) > form > p > input.zakres-nazwa-text'
+        },
+        remoteSearch:true,
+        
+        async priceGet(page){
+            await page.waitForTimeout(500);
+            await page.evaluate( () => document.querySelector("body > center > table > tbody > tr:nth-child(1) > td:nth-child(2) > div > div:nth-child(8) > form > p > input.zakres-nazwa-text").value = "")
+            return await page.evaluate(()=>{
+                if(document.querySelectorAll("td.col-cena.col-cena-bg-gazetka")[0]!=null)
+                {
+                    return document.querySelectorAll("td.col-cena.col-cena-bg-gazetka")[0].innerText
+                } else return '';
+                
+                
+            })
+        },
+        
+        priceDressing(products, htmlText, index){
+            if(htmlText !='') {
+                const priceText = htmlText.slice(0,htmlText.indexOf('zł')-1)
+                
+                if(priceText[0] == '0') {
+                    products[index].buy_price = parseFloat(priceText.slice(2))
+                } else {
+                    products[index].buy_price = parseFloat(priceText).toFixed(2)
+                }
+                
+                products[index].buy_price = (products[index].buy_price).toFixed(2);
+                products[index].buy_price = parseFloat(products[index].buy_price);
+            } else {
+                products[index].buy_price = 0;
+            }
+            
+            return products;
+        }
+    },
+
+    silit:{
+        urls:{
+            login: 'https://silit.abstore.pl/client/loginorcreate/login/',
+            search:'https://silit.abstore.pl/search/text=',
+            logout:'https://silit.abstore.pl/client/logout/'
+        },
+        access:{
+            login:process.env.silit_login || '',
+            password:process.env.silit_pass || ''
+        },
+        buttons: {
+            cookies:'#cookie-policy-remove-button',
+            login:'#login_id',
+            search:'#searchForm_cartPreview > div > div.input-group > span > button > span'
+        },
+        selectors:{
+            toWaitFor:'#cookie-policy-remove-button',
+            toLogin:'#email_id',
+            toPassword:'#password_id',
+            toPrice:'',
+            search:'#searchInput_cartPreview'
+        },
+        remoteSearch:true,
+        
+        async priceGet(page){
+            await page.waitForTimeout(500);
+            await page.evaluate( () => document.querySelector("#searchInput_cartPreview").value = "")
+            return await page.evaluate(()=>{
+                if(document.querySelectorAll("td.col-cena.col-cena-bg-gazetka")[0]!=null)
+                {
+                    return document.querySelectorAll("td.col-cena.col-cena-bg-gazetka")[0].innerText
+                } else return '';
+                
+                
+            })
+        },
+        
+        priceDressing(products, htmlText, index){
+            if(htmlText !='') {
+                const priceText = htmlText.slice(0,htmlText.indexOf('ZŁ')-1)
+                
+                if(priceText[0] == '0') {
+                    products[index].buy_price = parseFloat(priceText.slice(2))
+                } else {
+                    products[index].buy_price = parseFloat(priceText).toFixed(2)
+                }
+                
+                products[index].buy_price = (products[index].buy_price).toFixed(2);
+                products[index].buy_price = parseFloat(products[index].buy_price);
+            } else {
+                products[index].buy_price = 0;
+            }
+            
+            return products;
+        }
+    },
+
+    /*panda:{
+        urls:{
+            login: '',
+            search:'',
+            logout:''
+        },
+        access:{
+            login:process.env._login || '',
+            password:process.env._pass || ''
+        },
+        buttons: {
+            cookies:'',
+            login:'',
+            search:''
+        },
+        selectors:{
+            toWaitFor:'',
+            toLogin:'',
+            toPassword:'',
+            toPrice:'',
+            search:''
+        },
+        
+        async priceGet(page){
+            return await page.evaluate(()=>{
+                if(document.querySelectorAll('span.productFull__quick_infoBox--price')[0]!=null)
+                {
+                    return document.querySelectorAll('span.productFull__quick_infoBox--price')[0].innerText;
+                } else return '';
+            })
+        },
+        
+        priceDressing(products, htmlText, index){
+            if(htmlText !='') {
+                const priceText = htmlText.slice(0,htmlText.indexOf('ZŁ')-1)
+                
+                if(priceText[0] == '0') {
+                    products[index].buy_price = parseFloat(priceText.slice(2))
+                } else {
+                    products[index].buy_price = parseFloat(priceText).toFixed(2)
+                }
+                
+                products[index].buy_price = (products[index].buy_price).toFixed(2);
+                products[index].buy_price = parseFloat(products[index].buy_price);
+            } else {
+                products[index].buy_price = 0;
+            }
+            
+            return products;
+        }
+    },*/ //ich strona nie jest gotowa
+    
+    orno:{
+        urls:{
+            login: 'https://b2b.orno.pl/',
+            search:'https://b2b.orno.pl/search?q=',
+            logout:'https://b2b.orno.pl/logout'
+        },
+        access:{
+            login:process.env.orno_login || '',
+            password:process.env.orno_pass || ''
+        },
+        buttons: {
+            cookies:'',
+            login:'body > div.container > div > div > div > div > form > div.row > div > button',
+        },
+        selectors:{
+            toWaitFor:'body > div.container > div > div > div > div > form > div.row > div > button',
+            toLogin:'#inputEmail',
+            toPassword:'#inputPassword',
+            toPrice:'div.product-show__price-value',
+        },
+        
+        async priceGet(page){
+            if(document.querySelector("body > div > div > section.content > div > div:nth-child(3) > div > div > div.box-body > table > tbody > tr:nth-child(1) > td:nth-child(2) > a")!=null)
+            {
+                page.click(document.querySelector("body > div > div > section.content > div > div:nth-child(3) > div > div > div.box-body > table > tbody > tr:nth-child(1) > td:nth-child(2) > a"))
+                await page.waitForNavigation({
+                    waitUntil: 'networkidle2',
+                    });
+            }
+            
+            return await page.evaluate(()=>{
+                if(document.querySelector("div.product-show__price-value")!=null)
+                {
+                    return document.querySelector("div.product-show__price-value").innerText;
+                } else return '';
+            })
+        },
+        
+        priceDressing(products, htmlText, index){
+            if(htmlText !='') {
+                const priceText = htmlText.slice(0,htmlText.indexOf('ZŁ')-1)
+                
+                if(priceText[0] == '0') {
+                    products[index].buy_price = parseFloat(priceText.slice(2))
+                } else {
+                    products[index].buy_price = parseFloat(priceText).toFixed(2)
+                }
+                
+                products[index].buy_price = (products[index].buy_price).toFixed(2);
+                products[index].buy_price = parseFloat(products[index].buy_price);
+            } else {
+                products[index].buy_price = 0;
+            }
+            
+            return products;
+        }
+    },
+
+
+    eet:{
+        urls:{
+            login: 'https://www.eetgroup.com/pl-pl',
+            search:'https://www.eetgroup.com/pl-pl/?term=',
+            logout:'https://www.eetgroup.com/pl-pl/my-account/profile'
+        },
+        access:{
+            login:process.env.eet_login || '',
+            password:process.env.eet_pass || ''
+        },
+        buttons: {
+            extraCookies:'#coiPage-2 > div.coi-banner__page-footer > button:nth-child(3)',
+            notifications:'#modals-container > div > div.modal.modal-visible > div > div > div > article > div > form > button',
+            cookies:'',
+            login:'#modals-container > div > div.modal.modal-visible > div > div > div > article > div > form > button',
+            logout:'body > div:nth-child(4) > div.flex.flex-col.bg-gray-300 > div > main > article > aside > section > div > ul:nth-child(5) > li > button',
+            prelogin:'body > div:nth-child(4) > div.flex.flex-col.bg-gray-300 > div > header > div > div.top-header-wrapper > div > article > div > div > div.header-nav-buttons > button > span > span'
+        },
+        selectors:{
+            toWaitFor:'#modals-container > div > div.modal.modal-visible > div > div > div > article > div > form > button',
+            toLogin:'#modals-container > div > div.modal.modal-visible > div > div > div > article > div > form > div.mt-20 > div > label',
+            toPassword:'#modals-container > div > div.modal.modal-visible > div > div > div > article > div > form > div.mt-10 > div > label',
+            toPrice:'p.text-black.font-bold.text-14.uppercase',
+        },
+        
+        async extraCookieHandler(page){
+            let loginUrl = this.urls.login;
+            await page.goto(loginUrl, {waitUntil: 'networkidle2'});
+            await page.waitForSelector(this.buttons.extraCookies);
+            await page.click(this.buttons.extraCookies);
+        },
+
+        async priceGet(page){
+            return await page.evaluate(()=>{
+                if(document.querySelector("p.text-black.font-bold.text-14.uppercase")!=null)
+                {
+                    return document.querySelector("p.text-black.font-bold.text-14.uppercase").innerText;
+                } else return '';
+            })
+        },
+        
+        priceDressing(products, htmlText, index){
+            if(htmlText !='') {
+                const priceText = htmlText.slice(0,htmlText.indexOf('PLN')-1)
+                
+                if(priceText[0] == '0') {
+                    products[index].buy_price = parseFloat(priceText.slice(2))
+                } else {
+                    products[index].buy_price = parseFloat(priceText).toFixed(2)
+                }
+                
+                products[index].buy_price = (products[index].buy_price).toFixed(2);
+                products[index].buy_price = parseFloat(products[index].buy_price);
+            } else {
+                products[index].buy_price = 0;
+            }
+            
+            return products;
+        }
+    },
+
+    k2:{
+        urls:{
+            login: 'https://k2distribution.pl/login/',
+            search:'https://k2distribution.pl/category/?q=',
+            logout:''
+        },
+        access:{
+            login:process.env.k2_login || '',
+            //password:process.env.k2_pass || ''
+        },
+        buttons: {
+            cookies:'',
+            login:'body > main > section.logins.mod-logins-1 > div > form > div:nth-child(3) > div:nth-child(2) > input',
+        },
+        selectors:{
+            toWaitFor:'body > main > section.logins.mod-logins-1 > div > form > div:nth-child(3) > div:nth-child(2) > input',
+            toLogin:'body > main > section.logins.mod-logins-1 > div > form > div:nth-child(3) > div:nth-child(1) > input',
+            toPassword:'body > main > section.logins.mod-logins-1 > div > form > div:nth-child(3) > div:nth-child(2) > input',
+            toPrice:'',
+        },
+        
+        async priceGet(page){
+            return await page.evaluate(()=>{
+                if(document.querySelectorAll('span.productFull__quick_infoBox--price')[0]!=null)
+                {
+                    return document.querySelectorAll('span.productFull__quick_infoBox--price')[0].innerText;
+                } else return '';
+            })
+        },
+        
+        priceDressing(products, htmlText, index){
+            if(htmlText !='') {
+                const priceText = htmlText.slice(0,htmlText.indexOf('ZŁ')-1)
+                
+                if(priceText[0] == '0') {
+                    products[index].buy_price = parseFloat(priceText.slice(2))
+                } else {
+                    products[index].buy_price = parseFloat(priceText).toFixed(2)
+                }
+                
+                products[index].buy_price = (products[index].buy_price).toFixed(2);
+                products[index].buy_price = parseFloat(products[index].buy_price);
+            } else {
+                products[index].buy_price = 0;
+            }
+            
+            return products;
+        }
+    },
+
+    homescreen:{
+        urls:{
+            login: 'https://b2b.homescreen.pl/logowanie?back=my-account',
+            search:'https://b2b.homescreen.pl/module/iqitsearch/searchiqit?s=',
+            logout:'https://b2b.homescreen.pl/?mylogout='
+        },
+        access:{
+            login:process.env.homescreen_login || '',
+            password:process.env.homescreen_pass || ''
+        },
+        buttons: {
+            cookies:'',
+            login:'#submit-login',
+        },
+        selectors:{
+            toWaitFor:'#submit-login',
+            toLogin:'#field-email',
+            toPassword:'#field-password',
+            toPrice:'document.querySelector("div.product-price-and-shipping > span").innerText',
+        },
+        
+        async priceGet(page){
+            return await page.evaluate(()=>{
+                if(document.querySelector("div.product-price-and-shipping > span")!=null)
+                {
+                    return document.querySelector("div.product-price-and-shipping > span").innerText;
                 } else return '';
             })
         },

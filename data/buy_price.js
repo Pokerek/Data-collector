@@ -24,6 +24,7 @@ const getPrices = async (products, Wholesaler) => {
 
     let page = await browser.newPage();
 
+    await page.setViewport({ width: 1866, height: 768});
 
     if(Wholesaler.buttons.hasOwnProperty('extraCookies'))
     {
@@ -32,8 +33,15 @@ const getPrices = async (products, Wholesaler) => {
 
     await page.goto(loginUrl, {waitUntil: 'networkidle2'});
 
+    if(Wholesaler.buttons.hasOwnProperty('notifications'))
+    {
+        await page.waitForSelector(Wholesaler.buttons.notifications);
+        await page.click(Wholesaler.buttons.notifications)
+    }
+
     if(!Wholesaler.hasOwnProperty('specialLoginActions'))
     {
+        
         if(Wholesaler.buttons.hasOwnProperty('preLogin'))
         {
             await page.click(Wholesaler.buttons.prelogin);
@@ -51,7 +59,7 @@ const getPrices = async (products, Wholesaler) => {
     }
     else
     {
-        Wholesaler.specialLoginAction()
+        await Wholesaler.specialLoginAction(page)
     }
 
 
@@ -97,18 +105,18 @@ const getPrices = async (products, Wholesaler) => {
             await page.waitForSelector(Wholesaler.selectors.search);
 
             page.type(Wholesaler.selectors.search,products[i].ean)
-            await page.waitForTimeout(5000);
-            page.click(Wholesaler.buttons.search);
             await page.waitForTimeout(2000);
+            page.click(Wholesaler.buttons.search);
+            await page.waitForTimeout(5000);
             let htmlText='';
             htmlText=await Wholesaler.priceGet(page);
             
             if(products[i].sku!='' && htmlText=='')
             {
                 page.type(Wholesaler.selectors.search,products[i].sku)
-                await page.waitForTimeout(5000);
-                page.click(Wholesaler.buttons.search)
                 await page.waitForTimeout(2000);
+                page.click(Wholesaler.buttons.search);
+                await page.waitForTimeout(5000);
                 htmlText=await Wholesaler.priceGet(page);
             }
 
@@ -124,15 +132,17 @@ const getPrices = async (products, Wholesaler) => {
     }
     
     
+    if(Wholesaler.urls.logout!='')
+    {
+        await page.goto(logoutUrl, {waitUntil: 'networkidle2'});
+    }
 
     if(Wholesaler.buttons.hasOwnProperty('logout'))
     {
         await page.click(Wholesaler.buttons.logout);
     }
-    else
-    {
-        await page.goto(logoutUrl, {waitUntil: 'networkidle2'});
-    }
+    
+    
     
 
     await browser.close();
@@ -143,5 +153,5 @@ const getPrices = async (products, Wholesaler) => {
 
 
 (async()=>{
-    console.log(await getPrices(products, Wholesalers.ombero));
+    console.log(await getPrices(products, Wholesalers.abonline));
 })();

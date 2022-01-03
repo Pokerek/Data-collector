@@ -6,10 +6,16 @@ const productSchema = new mongoose.Schema({
   ean: String,
   storage_id: Number,
   storage_name: String,
-  price_netto_buy: [Number],
-  price_brutto_buy: [Number],
-  price_netto_sell:[Number],
-  price_brutto_sell: [Number],
+  price: {
+    buy: {
+      netto: [Number],
+      brutto: [Number]
+    },
+    sell: {
+      netto: [Number],
+      brutto: [Number]
+    }
+  },
   tax_rate: Number,
   profit: Number,
   lastSell: Number,
@@ -28,10 +34,16 @@ const products = {
       ean: product.ean,
       storage_id: product.storage_id,
       storage_name: product.storage_name,
-      price_netto_buy: [product.price_netto_buy],
-      price_brutto_buy: [product.price_brutto_buy],
-      price_netto_sell: [product.price_netto_sell],
-      price_brutto_sell: [product.price_brutto_sell],
+      price: {
+        buy: {
+          netto: [product.price.buy.netto],
+          brutto: [product.price.buy.brutto]
+        },
+        sell: {
+          netto: [product.price.sell.netto],
+          brutto: [product.price.sell.brutto]
+        }
+      },
       tax_rate: product.tax_rate,
       profit: product.profit,
       lastSell: new Date().getTime()
@@ -42,15 +54,15 @@ const products = {
     const localProduct = this.convert(product)
     if (dbProduct) { // Update information
       dbProduct.storage_name = localProduct.storage_name
-      dbProduct.price_netto_buy = this.maxMemory(dbProduct.price_netto_buy,localProduct.price_netto_buy[0])
-      dbProduct.price_brutto_buy = this.maxMemory(dbProduct.price_brutto_buy,localProduct.price_brutto_buy[0])
-      dbProduct.price_netto_sell = this.maxMemory(dbProduct.price_netto_sell,localProduct.price_netto_sell[0])
-      dbProduct.price_brutto_sell = this.maxMemory(dbProduct.price_brutto_sell,localProduct.price_brutto_sell[0])
+      dbProduct.price.buy.netto = this.maxMemory(dbProduct.price.buy.netto,localProduct.price.buy.netto[0])
+      dbProduct.price.buy.brutto = this.maxMemory(dbProduct.price.buy.brutto,localProduct.price.buy.brutto[0])
+      dbProduct.price.sell.netto = this.maxMemory(dbProduct.price.sell.netto,localProduct.price.sell.netto[0])
+      dbProduct.price.sell.brutto = this.maxMemory(dbProduct.price.sell.brutto,localProduct.price.sell.brutto[0])
       dbProduct.profit = localProduct.profit
       dbProduct.lastSell = localProduct.lastSell
-      dbProduct.save()
-    } else { // Create new product
-      this.create(localProduct)
+      await dbProduct.save()
+    } else { 
+      await this.create(localProduct) // Create new product
     }
   },
   async checkdouble (product) {
@@ -62,11 +74,11 @@ const products = {
     }
     return dbProduct[0]
   },
-  testEAN (ean) {
-    return ean !== ''
+  testEAN (productEAN, array = []) {
+    return productEAN !== '' && !array.find(({ean}) => ean === productEAN)
   },
-  testSKU (sku) {
-    return ((sku.indexOf('OUTLET') === -1) && (sku.indexOf('ZWROT') === -1) && sku !== '')
+  testSKU (productSKU, array = []) {
+    return (productSKU !== '') && (productSKU.indexOf('OUTLET') === -1) && (productSKU.indexOf('ZWROT') === -1) && (!array.find(({sku}) => sku === productSKU))
   },
   maxMemory (array, price, max = 5) {
     if(array.length === max) {array.shift()}

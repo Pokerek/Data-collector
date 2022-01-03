@@ -1,6 +1,7 @@
 const mongoose = require('./connect')
 const baselinker = require('./baselinker')
 const products = require('./products')
+const storages = require('./storages')
 
 const orderSchema = new mongoose.Schema({
   order_id: Number,
@@ -15,10 +16,16 @@ const orderSchema = new mongoose.Schema({
 			ean: String,
       storage_id: Number,
 			storage_name: String,
-			price_netto_buy: Number,
-			price_brutto_buy: Number,
-			price_netto_sell:Number,
-			price_brutto_sell: Number,
+      price: {
+        buy: {
+          netto: Number,
+          brutto: Number
+        },
+        sell: {
+          netto: Number,
+          brutto: Number
+        }
+      },
 			tax_rate: Number,
 			quantity: Number,
       profit: Number,
@@ -34,28 +41,35 @@ const nettoPrice = (brutto,tax, place = 2) => {
 }
 
 const orders = {
+  
   async create(data) {
     const order = new Order(data)
     await order.save()
   },
   convert(order) {
     const productsArr = []
-    order.products.forEach((e) => {
+    order.products.forEach((product) => {
       productsArr.push({
-        name: e.name,
-        sku: e.sku,
-        ean: e.ean,
-        storage_id: e.storage_id,
+        name: product.name,
+        sku: product.sku,
+        ean: product.ean,
+        storage_id: product.storage_id,
         storage_name: '',
-        price_netto_buy:0,
-        price_brutto_buy:0,
-        price_netto_sell: nettoPrice(e.price_brutto,e.tax_rate),
-        price_brutto_sell: e.price_brutto,
-        tax_rate: e.tax_rate,
-        quantity: e.quantity,
+        price: {
+          buy: {
+            netto: 0,
+            brutto: 0
+          },
+          sell: {
+            netto: nettoPrice(product.price_brutto,product.tax_rate),
+            brutto: product.price_brutto
+          }
+        },
+        tax_rate: product.tax_rate,
+        quantity: product.quantity,
         profit: 0,
-        location: e.location,
-        auction_id: e.auction_id,
+        location: product.location,
+        auction_id: product.auction_id,
       })
     })
     return {
@@ -75,11 +89,11 @@ const orders = {
     const order = await Order.find({order_id: id})
     return order[0]
   },  
-  async update (year, month, day) {
-    const startDate = await baselinker.convertData(year, month, day)
-    const endDate = startDate + 86400 // One day uptade to more flex
-    const productsBuffor = []
-
+  async updateFromData (year, month, day, time = 86400) {
+    const startDate = await baselinker.convertData(year, month, day),
+          endDate = startDate + time,
+          ordersBuffor = []
+    let productsBuffor = []
     //First init
     let data = await this.load(startDate)
     let nextDate = startDate
@@ -92,22 +106,17 @@ const orders = {
             //changes in order
           } else {
             const convertedOrder = this.convert(data[index])
-            this.create(convertedOrder)
-            convertedOrder.products.forEach(product => {
-              let exist = false
-              //Test ean or sku
-              if(products.testEAN(product.ean)) {
-                productsBuffor.forEach(element => {
-                  exist = product.ean === element.ean
-                })
-              } else if (products.testSKU(product.sku)) {
-                productsBuffor.forEach(element => {
-                  exist = product.sku === element.sku
-                })
+            convertedOrder.products.forEach((product,index) => {
+              const storageName = convertedOrder.products[index].storage_name = await storages.getName(product.storage_id)
+              if(productsBuffor[storageName]) {
+                if(products.testEAN(product.ean,productsBuffor[storageName]) || products.testSKU(product.sku,productsBuffor[storageName])) { //Test ean or sku
+                  productsBuffor[storageName].push(product)
+                }  
+              } else {
+                productsBuffor[storageName] = []
+                productsBuffor[storageName].push(product)
               }
-              if(!exist) { 
-                productsBuffor.push(product)
-              }
+              ordersBuffor.push(convertedOrder)
             })
           }
         }
@@ -117,7 +126,15 @@ const orders = {
         data = await this.load(nextDate)
       }
     } while (nextDate < endDate)
-    productsBuffor.forEach((product) => {products.update(product)}) //Load or update products
+    for(const storage in productsBuffor) {
+      productsBuffor[storage] = await prices.getPrices(storage,productsBuffor[storage]) //Prices load from storages
+      for(const product of productsBuffor[storage]) {
+        products.update(product)
+      }
+    }
+    ordersBuffor.forEach((order) => {
+      order.save() // Create new order
+    })
   }
 }
 

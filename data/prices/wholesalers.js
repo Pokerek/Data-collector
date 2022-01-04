@@ -1,9 +1,7 @@
 require('dotenv').config({path:'../.env'})
 
-const token = process.env.BL_TOKEN || ''
-
-const Wholesalers={
-    hurtel:{
+const wholesalers={
+    HURTEL:{
         urls:{
             login: 'https://b2b.hurtel.com/pl/signin.html',
             search:'https://b2b.hurtel.com/pl/search.html?text=',
@@ -23,37 +21,18 @@ const Wholesalers={
             toPassword:'#user_pass',
             toPrice:'#search > div > div.product__prices > strong.price'
         },
+        typeSearch: 'sku',
         
-        async priceGet(page){
-            return await page.evaluate(()=>{
-                if(document.querySelector('#search > div > div.product__prices > strong.price')!=null)
-                {
-                    return document.querySelector('#search > div > div.product__prices > strong.price').textContent;
-                } else return '';
-                
-                
-            })
-        },
-        
-        priceDressing(products, htmlText, index){
-            if(htmlText !='') {
-                const priceText = htmlText.slice(0,htmlText.indexOf('zł')-1)
-                if(priceText[0] == '0') {
-                    products[index].buy_price = parseFloat(priceText.slice(2))* 1.23 / 100
-                } else {
-                    products[index].buy_price = parseFloat(priceText).toFixed(2) * 1.23
-                }      
-                
-                products[index].buy_price = (products[index].buy_price).toFixed(2);
-                products[index].buy_price = parseFloat(products[index].buy_price);
-            } else {
-                products[index].buy_price = 0;
+        async getStoragePrice(productPrice, priceHTML){
+            if(priceHTML) {
+                const priceNetto = priceHTML.slice(0,priceHTML.indexOf('zł')-1).replaceAll(',','.') * 1
+                productPrice.netto = priceNetto
+                productPrice.brutto = (priceNetto * 1.23).toFixed(2) * 1 
             }
-            
-            return products;
+            return productPrice
         }
     },
-    partnertele:{
+    PARTNERTELE:{
         urls:{
             login: 'https://hurtownia.partnertele.com/pl/user/login',
             search:'https://hurtownia.partnertele.com/pl/product/search?q=',
@@ -73,32 +52,18 @@ const Wholesalers={
             toPassword:'#password',
             toPrice:'#price-count'
         },
+        typeSearch: 'ean',
 
-        async priceGet(page){
-            return await page.evaluate(()=>{
-                if(document.querySelector('#price-count')!=null)
-                {
-                    return parseFloat(document.querySelector('#price-count').textContent)
-                } else return '';
-                
-                
-            })
-        },
-
-        priceDressing(products, htmlText, index){
-            if(isNaN(htmlText))
-            {
-                products[index].buy_price = parseFloat(htmlText);
-                products[index].buy_price = (products[index].buy_price*1.23).toFixed(2);
-                products[index].buy_price = parseFloat(products[index].buy_price);
-            }else{
-                products[index].buy_price = 0;
+        async getStoragePrice(productPrice, priceHTML){
+            if(priceHTML) {
+                const priceNetto = priceHTML * 1
+                productPrice.netto = priceNetto
+                productPrice.brutto = (priceNetto * 1.23).toFixed(2) * 1
             }
-
-            return products;
+            return productPrice
         }
     },
-    annapol:{
+    ANNAPOL:{
         urls:{
             login: 'https://www.annapol.com/login.php',
             search:'https://www.annapol.com/advanced_search_result.php?keywords=',
@@ -139,7 +104,7 @@ const Wholesalers={
             })
         },
         
-        priceDressing(products, htmlText, index){
+        priceSave(products, htmlText, index){
             if(htmlText !='') {
                 const priceText = htmlText.slice(0,htmlText.indexOf('EUR')-1)
                 if(priceText[0] == '0') {
@@ -158,7 +123,7 @@ const Wholesalers={
             return products;
         }
     },
-    epstryk:{
+    EPSTRYK:{
         urls:{
             login: 'https://epstryk.pl/login.php',
             search:'https://epstryk.pl/search.php?text=',
@@ -190,7 +155,7 @@ const Wholesalers={
             })
         },
         
-        priceDressing(products, htmlText, index){
+        priceSave(products, htmlText, index){
             if(htmlText !='') {
                 const priceText = htmlText.slice(0,htmlText.indexOf('zł')-1)
                 if(priceText[0] == '0') {
@@ -209,7 +174,7 @@ const Wholesalers={
             return products;
         }
     },
-    dmtrade:{
+    DMTRADE:{
         urls:{
             login: 'https://www.dmtrade.pl/logowanie.html',
             search:'https://www.dmtrade.pl/index.php?d=szukaj&szukaj=',
@@ -241,7 +206,7 @@ const Wholesalers={
             })
         },
         
-        priceDressing(products, htmlText, index){
+        priceSave(products, htmlText, index){
             if(htmlText !='') {      
                 products[index].buy_price = parseFloat(htmlText);
                 products[index].buy_price = (products[index].buy_price).toFixed(2);
@@ -253,7 +218,7 @@ const Wholesalers={
             return products;
         }
     },
-    gadgetmaster:{
+    GADGETMASTER:{
         urls:{
             login: 'https://gadget-master.pl/signin.php',
             search:'https://gadget-master.pl/search.php?text=',
@@ -285,7 +250,7 @@ const Wholesalers={
             })
         },
         
-        priceDressing(products, htmlText, index){
+        priceSave(products, htmlText, index){
             if(htmlText !='') {
                 const priceText = htmlText.slice(0,htmlText.indexOf('zł')-1)
                 if(priceText[0] == '0') {
@@ -303,7 +268,7 @@ const Wholesalers={
             return products;
         }
     },
-    abonline:{
+    ABONLINE:{
         urls:{
             login: 'https://www.abonline.pl/',
             remoteSearch:'https://www.abonline.pl/offer/pl/0/#/list/?srch=',
@@ -343,7 +308,7 @@ const Wholesalers={
             })
         },
 
-        priceDressing(products, htmlText, index){
+        priceSave(products, htmlText, index){
             if(htmlText !='')
             {
                 products[index].buy_price = htmlText.slice(0,htmlText.indexOf('zł')-1);
@@ -357,7 +322,7 @@ const Wholesalers={
             return products;
         }
     },
-    tayma:{
+    TAYMA:{
         urls:{
             login: 'https://tayma.pl/pl/signin.html',
             search:'https://tayma.pl/pl/noproduct.html?reason=product&text=',
@@ -389,7 +354,7 @@ const Wholesalers={
             })
         },
         
-        priceDressing(products, htmlText, index){
+        priceSave(products, htmlText, index){
             if(htmlText !='') {
                 const priceText = htmlText.slice(0,htmlText.indexOf('zł')-1)
                 if(priceText[0] == '0') {
@@ -407,7 +372,7 @@ const Wholesalers={
             return products;
         }
     },
-    action:{
+    ACTION:{
         urls:{
             login: 'https://is3.action.pl/user/signin',
             search:'https://is3.action.pl/products?keyword=',
@@ -439,7 +404,7 @@ const Wholesalers={
             })
         },
         
-        priceDressing(products, htmlText, index){
+        priceSave(products, htmlText, index){
             if(htmlText !='') {
                 const priceText = htmlText.slice(0,htmlText.indexOf('zł')-1)
                 if(priceText[0] == '0') {
@@ -457,7 +422,7 @@ const Wholesalers={
             return products;
         }
     },
-    bossoftoys:{
+    BOSSOFTOYS:{
         urls:{
             login: 'https://b2b.bossoftoys.pl/',
             remoteSearch:'https://b2b.bossoftoys.pl/index.php/cennik',
@@ -494,7 +459,7 @@ const Wholesalers={
             })
         },
         
-        priceDressing(products, htmlText, index){
+        priceSave(products, htmlText, index){
             if(htmlText !='') {
                 const priceText = htmlText.slice(0,htmlText.indexOf('PLN')-1)
                 if(priceText[0] == '0') {
@@ -512,7 +477,7 @@ const Wholesalers={
             return products;
         }
     },
-    ombero:{
+    OMBERO:{
         urls:{
             login: 'https://ombero.pl/_login/index',
             search:'https://ombero.pl/q/?keywords=',
@@ -542,7 +507,7 @@ const Wholesalers={
             })
         },
         
-        priceDressing(products, htmlText, index){
+        priceSave(products, htmlText, index){
             if(htmlText !='') {
                 const priceText = htmlText
                 if(priceText[0] == '0') {
@@ -560,7 +525,7 @@ const Wholesalers={
             return products;
         }
     },
-    vivab2b:{
+    VIVAB2B:{
         urls:{
             login: 'https://vivab2b.pl/konto.html?redirect=YTowOnt9',
             search:'https://vivab2b.pl/?f=&a=sklep&k=0&q=',
@@ -590,7 +555,7 @@ const Wholesalers={
             })
         },
         
-        priceDressing(products, htmlText, index){
+        priceSave(products, htmlText, index){
             if(htmlText !='') {
                 const priceText = htmlText.slice(0,htmlText.indexOf('zł')-1)
                 if(priceText[0] == '0') {
@@ -609,7 +574,7 @@ const Wholesalers={
         }
     },
 
-    ftoys:{
+    FTOYS:{
         urls:{
             login: 'https://ftoys.pl/logowanie',
             search:'https://ftoys.pl/p?szukane=',
@@ -639,7 +604,7 @@ const Wholesalers={
             })
         },
         
-        priceDressing(products, htmlText, index){
+        priceSave(products, htmlText, index){
             if(htmlText !='') {
                 const priceText = htmlText.slice(0,htmlText.indexOf('PLN')-1)
                 if(priceText[0] == '0') {
@@ -658,7 +623,7 @@ const Wholesalers={
         }
     },
 
-    b2btrade:{
+    B2BTRADE:{
         urls:{
             login: 'http://b2btrade.eu/',
             search:'http://b2btrade.eu/ItemsCatalog?searchString=',
@@ -700,7 +665,7 @@ const Wholesalers={
             })
         },
         
-        priceDressing(products, htmlText, index){
+        priceSave(products, htmlText, index){
             if(htmlText !='') {
                 const priceText = htmlText.replaceAll('PLN ','')
                 if(priceText[0] == '0') {
@@ -719,7 +684,7 @@ const Wholesalers={
         }
     },
     
-    telforceone:{
+    TELFORCEONE:{
         urls:{
             login: 'https://sklep.telforceone.pl/',
             search:'https://sklep.telforceone.pl/pl-pl/szukaj?page=1&w=11&i=12&d=0&s=5&c=0&t=',
@@ -750,7 +715,7 @@ const Wholesalers={
             })
         },
         
-        priceDressing(products, htmlText, index){
+        priceSave(products, htmlText, index){
             if(htmlText !='') {
                 const priceText = htmlText.slice(0,htmlText.indexOf('PLN')-1)
                 if(priceText[0] == '0') {
@@ -769,7 +734,7 @@ const Wholesalers={
         }
     },
 
-    lamex:{
+    LAMEX:{
         urls:{
             login: 'https://lamex.pl/login',
             search:'https://lamex.pl/search/',
@@ -799,7 +764,7 @@ const Wholesalers={
             })
         },
         
-        priceDressing(products, htmlText, index){
+        priceSave(products, htmlText, index){
             if(htmlText !='') {
                 const priceText = htmlText.slice(0,htmlText.indexOf('PLN')-1)
                 
@@ -819,7 +784,7 @@ const Wholesalers={
         }
     },
 
-    lechpol:{
+    LECHPOL:{
         urls:{
             login: 'https://www.lechpol.pl/pl/login',
             search:'https://www.lechpol.pl/pl/query/',
@@ -859,7 +824,7 @@ const Wholesalers={
             })
         },
         
-        priceDressing(products, htmlText, index){
+        priceSave(products, htmlText, index){
             if(htmlText !='') {
                 const priceText = htmlText
                 
@@ -879,7 +844,7 @@ const Wholesalers={
         }
     },
     
-    amio:{
+    AMIO:{
         urls:{
             login: 'https://amio.pl/logowanie/7',
             search:'https://amio.pl/produkty/2?search=',
@@ -910,7 +875,7 @@ const Wholesalers={
             })
         },
         
-        priceDressing(products, htmlText, index){
+        priceSave(products, htmlText, index){
             if(htmlText !='') {
                 const priceText = htmlText.slice(0,htmlText.indexOf('PLN')-1)
                 
@@ -930,7 +895,7 @@ const Wholesalers={
         }
     },
 
-    fddistribution:{
+    FDDISTRIBUTION:{
         urls:{
             login: 'https://fd-distribution.pl/konto.html?redirect=YTowOnt9',
             search:'https://fd-distribution.pl/?f=&a=sklep&k=0&x=0&y=0&q=',
@@ -960,7 +925,7 @@ const Wholesalers={
             })
         },
         
-        priceDressing(products, htmlText, index){
+        priceSave(products, htmlText, index){
             if(htmlText !='') {
                 const priceText = htmlText.slice(0,htmlText.indexOf('zł')-1)
                 
@@ -980,7 +945,7 @@ const Wholesalers={
         }
     },
     
-    aptel:{
+    APTEL:{
         urls:{
             login: 'http://aptel.pl/Default.B2B.aspx',
             search:'http://aptel.pl/ProduktyWyszukiwanie.aspx?search=',
@@ -1011,7 +976,7 @@ const Wholesalers={
             })
         },
         
-        priceDressing(products, htmlText, index){
+        priceSave(products, htmlText, index){
             if(htmlText !='') {
                 const priceText = htmlText.slice(0,htmlText.indexOf('PLN')-1)
                 
@@ -1031,7 +996,7 @@ const Wholesalers={
         }
     },
 
-    iks2:{
+    IKS2:{
         urls:{
             login: 'https://iks2.pl/pl/order/login.html',
             search:'https://iks2.pl/pl/szukaj/?search_lang=pl&search=product&string=',
@@ -1061,7 +1026,7 @@ const Wholesalers={
             })
         },
         
-        priceDressing(products, htmlText, index){
+        priceSave(products, htmlText, index){
             if(htmlText !='') {
                 const priceText = htmlText.slice(0,htmlText.indexOf('ZŁ')-1)
                 
@@ -1081,7 +1046,7 @@ const Wholesalers={
         }
     },
 
-    sonia:{
+    SONIA:{
         urls:{
             login: 'https://b2b.sonia.pl/',
             remoteSearch:'https://b2b.sonia.pl/katalog.html',
@@ -1118,7 +1083,7 @@ const Wholesalers={
             })
         },
         
-        priceDressing(products, htmlText, index){
+        priceSave(products, htmlText, index){
             if(htmlText !='') {
                 const priceText = htmlText.slice(0,htmlText.indexOf('zł')-1)
                 
@@ -1138,7 +1103,7 @@ const Wholesalers={
         }
     },
 
-    silit:{
+    SILIT:{
         urls:{
             login: 'https://silit.abstore.pl/client/loginorcreate/login/',
             search:'https://silit.abstore.pl/search/text=',
@@ -1175,7 +1140,7 @@ const Wholesalers={
             })
         },
         
-        priceDressing(products, htmlText, index){
+        priceSave(products, htmlText, index){
             if(htmlText !='') {
                 const priceText = htmlText.slice(0,htmlText.indexOf('ZŁ')-1)
                 
@@ -1227,7 +1192,7 @@ const Wholesalers={
             })
         },
         
-        priceDressing(products, htmlText, index){
+        priceSave(products, htmlText, index){
             if(htmlText !='') {
                 const priceText = htmlText.slice(0,htmlText.indexOf('ZŁ')-1)
                 
@@ -1247,7 +1212,7 @@ const Wholesalers={
         }
     },*/ //ich strona nie jest gotowa
     
-    orno:{
+    ORNO:{
         urls:{
             login: 'https://b2b.orno.pl/',
             search:'https://b2b.orno.pl/search?q=',
@@ -1285,7 +1250,7 @@ const Wholesalers={
             })
         },
         
-        priceDressing(products, htmlText, index){
+        priceSave(products, htmlText, index){
             if(htmlText !='') {
                 const priceText = htmlText.slice(0,htmlText.indexOf('ZŁ')-1)
                 
@@ -1306,7 +1271,7 @@ const Wholesalers={
     },
 
 
-    eet:{
+    EET:{
         urls:{
             login: 'https://www.eetgroup.com/pl-pl',
             search:'https://www.eetgroup.com/pl-pl/?term=',
@@ -1347,7 +1312,7 @@ const Wholesalers={
             })
         },
         
-        priceDressing(products, htmlText, index){
+        priceSave(products, htmlText, index){
             if(htmlText !='') {
                 const priceText = htmlText.slice(0,htmlText.indexOf('PLN')-1)
                 
@@ -1367,7 +1332,7 @@ const Wholesalers={
         }
     },
 
-    k2:{
+    K2:{
         urls:{
             login: 'https://k2distribution.pl/login/',
             search:'https://k2distribution.pl/category/?q=',
@@ -1397,7 +1362,7 @@ const Wholesalers={
             })
         },
         
-        priceDressing(products, htmlText, index){
+        priceSave(products, htmlText, index){
             if(htmlText !='') {
                 const priceText = htmlText.slice(0,htmlText.indexOf('ZŁ')-1)
                 
@@ -1417,7 +1382,7 @@ const Wholesalers={
         }
     },
 
-    homescreen:{
+    HOMESCREEN:{
         urls:{
             login: 'https://b2b.homescreen.pl/logowanie?back=my-account',
             search:'https://b2b.homescreen.pl/module/iqitsearch/searchiqit?s=',
@@ -1447,7 +1412,7 @@ const Wholesalers={
             })
         },
         
-        priceDressing(products, htmlText, index){
+        priceSave(products, htmlText, index){
             if(htmlText !='') {
                 const priceText = htmlText.slice(0,htmlText.indexOf('zł')-1)
                 
@@ -1465,7 +1430,7 @@ const Wholesalers={
             
             return products;
         }
-    },
+    }
 }
 
-module.exports=Wholesalers;
+module.exports=wholesalers;

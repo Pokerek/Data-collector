@@ -2,6 +2,7 @@ const mongoose = require('./connect')
 const baselinker = require('./baselinker')
 const products = require('./products')
 const storages = require('./storages')
+const prices = require('./prices/prices')
 
 const orderSchema = new mongoose.Schema({
   order_id: Number,
@@ -106,7 +107,8 @@ const orders = {
             //changes in order
           } else {
             const convertedOrder = this.convert(data[index])
-            convertedOrder.products.forEach((product,index) => {
+            for (const index in convertedOrder.products) {
+              const product = convertedOrder.products[index]
               const storageName = convertedOrder.products[index].storage_name = await storages.getName(product.storage_id)
               if(productsBuffor[storageName]) {
                 if(products.testEAN(product.ean,productsBuffor[storageName]) || products.testSKU(product.sku,productsBuffor[storageName])) { //Test ean or sku
@@ -117,7 +119,7 @@ const orders = {
                 productsBuffor[storageName].push(product)
               }
               ordersBuffor.push(convertedOrder)
-            })
+            }
           }
         }
       }
@@ -127,13 +129,13 @@ const orders = {
       }
     } while (nextDate < endDate)
     for(const storage in productsBuffor) {
-      productsBuffor[storage] = await prices.getPrices(storage,productsBuffor[storage]) //Prices load from storages
+      productsBuffor[storage] = await prices.getPrices(productsBuffor[storage],storage) //Prices load from storages
       for(const product of productsBuffor[storage]) {
         products.update(product)
       }
     }
     ordersBuffor.forEach((order) => {
-      order.save() // Create new order
+      this.create(order) // Create new order
     })
   }
 }

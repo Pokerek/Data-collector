@@ -1430,7 +1430,51 @@ const wholesalers={
             
             return products;
         }
-    }
+    },
+    TOPEX:{
+        urls:{
+            login: 'https://strefagtx.pl/',
+            search:'https://strefagtx.pl/search/index/result/?q=',
+            logout:'https://strefagtx.pl/customer/account/logout'
+        },
+        access:{
+            login:process.env.topex_login || '',
+            password:process.env.topex_pass || ''
+        },
+        buttons: {
+            cookies:'#accept-cookies-checkbox',
+            login:'#send2',
+        },
+        selectors:{
+            toWaitFor:'#accept-cookies-checkbox',
+            toLogin:'#email',
+            toPassword:'#pass',
+            toPrice:'p.price > span',
+        },
+        
+        async priceGet(page){
+            return await page.evaluate(()=>{
+                if(document.querySelectorAll('p.price > span')[0]!=null)
+                {
+                    return document.querySelectorAll('p.price > span')[0].innerText;
+                } else return '';
+            })
+        },
+        
+        priceDressing(products, htmlText, index){
+            if(htmlText !='') {
+                const priceText = htmlText.slice(0,htmlText.indexOf('zł')-1)
+                products[index].price_brutto_buy = parseFloat(priceText.replaceAll(',','.'))    
+                
+                products[index].price_brutto_buy = (products[index].price_brutto_buy*1.23).toFixed(2);
+                products[index].price_brutto_buy = parseFloat(products[index].price_brutto_buy);
+            } else {
+                products[index].price_brutto_buy = 0;
+            }
+            
+            return products;
+        }
+    },
 }
 
 module.exports=wholesalers;

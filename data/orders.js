@@ -137,7 +137,54 @@ const orders = {
     ordersBuffor.forEach((order) => {
       this.create(order) // Create new order
     })
-  }
+  },
+
+  async loadOrdersFromDatabase()
+    {
+        let orders=await Order.find(function (err, orders) {
+            if (err) return 'error';
+            else return orders
+        }).clone().catch(function(err){return err})
+        return orders
+    },
+
+    async getProfitFromOrders()
+    {
+        const orders=await this.loadOrdersFromDatabase();
+        let profit=0;
+
+        for(let order of orders)
+        {
+            for(product of order.products)
+            {
+                profit+=product.profit;
+            }
+
+            profit+=order.delivery_price
+        }
+
+        return profit;
+    },
+
+    async getProfitFromOutlet()
+    {
+        const orders=await this.loadOrdersFromDatabase();
+        let profit=0;
+
+        for(let order of orders)
+        {
+            for(product of order.products)
+            {
+                if(product.location='')
+                {
+                    profit+=product.profit;
+                }
+                
+            }
+        }
+
+        return profit;
+    },
 }
 
 module.exports = orders

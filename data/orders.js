@@ -37,10 +37,6 @@ const orderSchema = new mongoose.Schema({
 
 const Order = mongoose.model('Order', orderSchema)
 
-const nettoPrice = (brutto,tax, place = 2) => {
-  return (brutto / (1 + tax / 100)).toFixed(place) * 1
-}
-
 const orders = {
   
   async create(data) {
@@ -62,7 +58,7 @@ const orders = {
             brutto: 0
           },
           sell: {
-            netto: nettoPrice(product.price_brutto,product.tax_rate),
+            netto: prices.nettoPrice(product.price_brutto,product.tax_rate),
             brutto: product.price_brutto
           }
         },

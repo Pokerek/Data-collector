@@ -1,425 +1,323 @@
 require('dotenv').config({path:'../.env'})
 
-const wholesalers={
+const wholesalers = {
     HURTEL:{
         urls:{
             login: 'https://b2b.hurtel.com/pl/signin.html',
-            search:'https://b2b.hurtel.com/pl/search.html?text=',
             logout:'https://b2b.hurtel.com/login.php?operation=logout'
         },
         access:{
             login:process.env.hurtel_login || '',
             password:process.env.hurtel_pass || '',
         },
-        buttons:{
+        alerts:{
             cookies:'#ckdsclmrshtdwn_v2 > span',
-            login:'div.signin_buttons.col-md-10.col-12 > button',
+            extraCookies: false,
+            notifications: false
         },
         selectors:{
-            toWaitFor:'#ckdsclmrshtdwn_v2 > span',
-            toLogin:'#user_login',
-            toPassword:'#user_pass',
-            toPrice:'#search > div > div.product__prices > strong.price'
+            name:'#search > div > h3 > a',
+            notFound: '#content > section.noproduct',
+            login:'#user_login',
+            employee: false,
+            password:'#user_pass',
+            price:'#search > div > div.product__prices > strong.price',
+            submit: 'div.signin_buttons.col-md-10.col-12 > button',
+            preLogin: false,
+            search: '.menu_search__input',
+            searchBtn: '.menu_search__submit'
         },
-        typeSearch: 'sku',
+        typeSearch: ['sku','ean','name'],
         
-        async getStoragePrice(productPrice, priceHTML){
-            if(priceHTML) {
-                const priceNetto = priceHTML.slice(0,priceHTML.indexOf('zł')-1).replaceAll(',','.') * 1
-                productPrice.netto = priceNetto
-                productPrice.brutto = (priceNetto * 1.23).toFixed(2) * 1 
-            }
+        async getStoragePrice(productPrice, priceHTML, tax){
+            const priceNetto = priceHTML.slice(0,priceHTML.indexOf('zł')-1).replaceAll(',','.') * 1
+            productPrice.netto = priceNetto
+            productPrice.brutto = wholesalers.bruttoPrice(priceNetto,tax) 
             return productPrice
         }
     },
     PARTNERTELE:{
         urls:{
             login: 'https://hurtownia.partnertele.com/pl/user/login',
-            search:'https://hurtownia.partnertele.com/pl/product/search?q=',
             logout:'https://hurtownia.partnertele.com/pl/user/logout'
         },
         access:{
             login:process.env.partnertele_login || '',
             password:process.env.partnertele_pass || ''
         },
-        buttons:{
-            cookies:'',
-            login:'#submitBtn',
+        alerts:{
+            cookies: false,
+            extraCookies: false,
+            notifications: false
         },
         selectors:{
-            toWaitFor:'#password',
-            toLogin:'#login',
-            toPassword:'#password',
-            toPrice:'#price-count'
+            name:'span.title',
+            notFound: '#Shop > div > div > div.col-lg-12.col-md-12 > p',
+            login:'#login',
+            employee: false,
+            password:'#password',
+            price:'#price-count',
+            submit: '#submitBtn',
+            preLogin: false,
+            search: '#search_query',
+            searchBtn: '.search-form button[type="submit"]'
         },
-        typeSearch: 'ean',
+        typeSearch: ['ean','sku','name'],
 
-        async getStoragePrice(productPrice, priceHTML){
-            if(priceHTML) {
-                const priceNetto = priceHTML * 1
-                productPrice.netto = priceNetto
-                productPrice.brutto = (priceNetto * 1.23).toFixed(2) * 1
-            }
+        async getStoragePrice(productPrice, priceHTML,tax){
+            const priceNetto = priceHTML * 1
+            productPrice.netto = priceNetto
+            productPrice.brutto = wholesalers.bruttoPrice(priceNetto,tax)
             return productPrice
-        }
-    },
-    ANNAPOL:{
-        urls:{
-            login: 'https://www.annapol.com/login.php',
-            search:'https://www.annapol.com/advanced_search_result.php?keywords=',
-            logout:'https://www.annapol.com/logoff.php'
-        },
-        access:{
-            login:process.env.annapol_login || '',
-            password:process.env.annapol_pass || ''
-        },
-        buttons: {
-            extraCookies:'#cookies_info > p > a.close',
-            cookies:'',
-            login:'tbody > tr > td > table:nth-child(2) > tbody > tr > td > input[type=image]',
-        },
-        selectors:{
-            toWaitFor:'tbody > tr > td > table:nth-child(2) > tbody > tr > td > input[type=image]',
-            toLogin:'tbody > tr:nth-child(1) > td:nth-child(2) > input[type=text]',
-            toPassword:'tbody > tr:nth-child(2) > td:nth-child(2) > input[type=password]',
-            toPrice:'#search > div > div.product__prices > strong.price'
-        },
-        
-
-        async extraCookieHandler(page){
-            let loginUrl = this.urls.login;
-            await page.goto(loginUrl, {waitUntil: 'networkidle2'});
-            await page.waitForSelector(this.buttons.extraCookies);
-            await page.click(this.buttons.extraCookies);
-        },
-
-        async priceGet(page){
-            return await page.evaluate(()=>{
-                if(document.querySelector('#search > div > div.product__prices > strong.price')!=null)
-                {
-                    return document.querySelector('#search > div > div.product__prices > strong.price').textContent;
-                } else return '';
-                
-                
-            })
-        },
-        
-        priceSave(products, htmlText, index){
-            if(htmlText !='') {
-                const priceText = htmlText.slice(0,htmlText.indexOf('EUR')-1)
-                if(priceText[0] == '0') {
-                    products[index].buy_price = parseFloat(priceText.slice(2))* 1.23 / 100
-                } else {
-                    products[index].buy_price = parseFloat(priceText).toFixed(2) * 1.23
-                }      
-                
-                products[index].buy_price = (products[index].buy_price*1.23).toFixed(2);
-                products[index].buy_price = parseFloat(products[index].buy_price);
-
-            } else {
-                products[index].buy_price = 0;
-            }
-
-            return products;
         }
     },
     EPSTRYK:{
         urls:{
             login: 'https://epstryk.pl/login.php',
-            search:'https://epstryk.pl/search.php?text=',
             logout:'https://epstryk.pl/login.php?operation=logout'
         },
         access:{
             login:process.env.epstryk_login || '',
             password:process.env.epstryk_pass || ''
         },
-        buttons: {
+        alerts:{
             cookies:'#ckdsclmrshtdwn_v2 > span',
-            login:'div.signin_buttons.col-md-10.col-xs-12 > button',
+            extraCookies: false,
+            notifications: false
         },
         selectors:{
-            toWaitFor:'#ckdsclmrshtdwn_v2 > span',
-            toLogin:'#user_login',
-            toPassword:'#user_pass',
-            toPrice:'#search > div > div.product__prices > strong.price'
+            name:'#search > div > div > h3 > a',
+            notFound: '#menu_messages_warning',
+            login:'#user_login',
+            employee: false,
+            password:'#user_pass',
+            price:'#search > div > div > div.product_prices > span.price',
+            submit: 'div.signin_buttons.col-md-10.col-xs-12 > button',
+            preLogin: false,
+            search: '.menu_search__input',
+            searchBtn: '.menu_search__submit'
         },
-        
-        async priceGet(page){
-            return await page.evaluate(()=>{
-                if(document.querySelector('#search > div > div.product__prices > strong.price')!=null)
-                {
-                    return document.querySelector('#search > div > div.product__prices > strong.price').textContent;
-                } else return '';
-                
-                
-            })
-        },
-        
-        priceSave(products, htmlText, index){
-            if(htmlText !='') {
-                const priceText = htmlText.slice(0,htmlText.indexOf('zł')-1)
-                if(priceText[0] == '0') {
-                    products[index].buy_price = parseFloat(priceText.slice(2))* 1.23 / 100
-                } else {
-                    products[index].buy_price = parseFloat(priceText).toFixed(2) * 1.23
-                }           
+        typeSearch: ['sku','ean','name'],
 
-                products[index].buy_price = (products[index].buy_price*1.23).toFixed(2);
-                products[index].buy_price = parseFloat(products[index].buy_price);
-                
-            } else {
-                products[index].buy_price = 0;
-            }
-
-            return products;
+        async getStoragePrice(productPrice, priceHTML,tax){
+            const priceBrutto = priceHTML.slice(0,priceHTML.indexOf('zł') - 1).replaceAll(',','.') * 1
+            productPrice.netto = wholesalers.nettoPrice(priceBrutto,tax)
+            productPrice.brutto = priceBrutto
+            return productPrice
         }
     },
     DMTRADE:{
         urls:{
             login: 'https://www.dmtrade.pl/logowanie.html',
-            search:'https://www.dmtrade.pl/index.php?d=szukaj&szukaj=',
             logout:'https://www.dmtrade.pl/lo.php?g=out'
         },
         access:{
             login:process.env.dmtrade_login || '',
             password:process.env.dmtrade_pass || ''
         },
-        buttons: {
+        alerts:{
             cookies:'button.cc-nb-okagree',
-            login:'input.button',
+            extraCookies: false,
+            notifications: false
         },
         selectors:{
-            toWaitFor:'button.cc-nb-okagree',
-            toLogin:'input[name=umail]',
-            toPassword:'input[name=password]',
-            toPrice:'span.tax > span'
+            name:'.product-a h3 > a:nth-child(2)',
+            notFound: '#content > div.dodatkowe > div > strong',
+            login:'input[name=umail]',
+            employee: false,
+            password:'input[name=password]',
+            price:'span.tax > span',
+            submit:'input.button' ,
+            preLogin: false,
+            search: '#input-szukaj',
+            searchBtn: '.input-absolute-box > button'
         },
-        
-        async priceGet(page){
-            return await page.evaluate(()=>{
-                if(document.querySelector('span.tax > span')!=null)
-                {
-                    return document.querySelector('span.tax > span').textContent;
-                } else return '';
-                
-                
-            })
-        },
-        
-        priceSave(products, htmlText, index){
-            if(htmlText !='') {      
-                products[index].buy_price = parseFloat(htmlText);
-                products[index].buy_price = (products[index].buy_price).toFixed(2);
-                products[index].buy_price = parseFloat(products[index].buy_price);
-            } else {
-                products[index].buy_price = 0;
-            }
-            
-            return products;
+        typeSearch: ['sku','ean','name'],
+
+        async getStoragePrice(productPrice, priceHTML,tax){
+            const priceBrutto = priceHTML.replaceAll(',','.') * 1
+            productPrice.netto = wholesalers.nettoPrice(priceBrutto,tax)
+            productPrice.brutto = priceBrutto
+            return productPrice
         }
     },
     GADGETMASTER:{
         urls:{
             login: 'https://gadget-master.pl/signin.php',
-            search:'https://gadget-master.pl/search.php?text=',
             logout:'https://gadget-master.pl/login.php?operation=logout'
         },
         access:{
             login:process.env.gadgetmaster_login || '',
             password:process.env.gadgetmaster_pass || ''
         },
-        buttons: {
+        alerts:{
             cookies:'#ckdsclmrshtdwn_v2 > span',
-            login:'div.signin_buttons.col-md-10.col-12 > button',
+            extraCookies: false,
+            notifications: false
         },
         selectors:{
-            toWaitFor:'#ckdsclmrshtdwn_v2 > span',
-            toLogin:'#user_login',
-            toPassword:'#user_pass',
-            toPrice:'strong.price'
+            name:'.searchList__info > h3 > a > span',
+            notFound: '#content > section.noproduct',
+            login:'#user_login',
+            employee: false,
+            password:'#user_pass',
+            price:'strong.price',
+            submit: 'div.signin_buttons.col-md-10.col-12 > button',
+            preLogin: false,
+            search: '.menu_search__input',
+            searchBtn: '.menu_search__submit'
         },
-        
-        async priceGet(page){
-            return await page.evaluate(()=>{
-                if(document.querySelector('strong.price')!=null)
-                {
-                    return document.querySelector('strong.price').textContent;
-                } else return '';
-                
-                
-            })
-        },
-        
-        priceSave(products, htmlText, index){
-            if(htmlText !='') {
-                const priceText = htmlText.slice(0,htmlText.indexOf('zł')-1)
-                if(priceText[0] == '0') {
-                    products[index].buy_price = parseFloat(priceText.slice(2))* 1.23 / 100
-                } else {
-                    products[index].buy_price = parseFloat(priceText).toFixed(2) * 1.23
-                }      
-                
-                products[index].buy_price = (products[index].buy_price).toFixed(2);
-                products[index].buy_price = parseFloat(products[index].buy_price);
-            } else {
-                products[index].buy_price = 0;
-            }
-            
-            return products;
-        }
-    },
-    ABONLINE:{
-        urls:{
-            login: 'https://www.abonline.pl/',
-            remoteSearch:'https://www.abonline.pl/offer/pl/0/#/list/?srch=',
-            logout:''
-        },
-        access:{
-            login:process.env.abonline_login || '',
-            password:process.env.abonline_pass || ''
-        },
-        buttons: {
-            cookies:'#accept_cookie',
-            login:'#jsBtnSiteLogin',
-            search:'#btnSearchBoxSearch',
-            logout:'.btnTopLogout',
-            search:'#btnSearchBoxSearch'
-        },
-        selectors:{
-            toSearch:'#inpSearchBoxPhrase',
-            toWaitFor:'#jsBtnSiteLogin',
-            toLogin:'#jsFrmLoginLogin',
-            toPassword:'#jsFrmLoginPass',
-            toPrice:'#productGrossPriceID > div > span',
-            search:'#inpSearchBoxPhrase'
-        },
-        remoteSearch:true,
-        
-        async priceGet(page){
-            await page.waitForTimeout(500);
-            await page.evaluate( () => document.querySelector("#inpSearchBoxPhrase").value = "")
-            return await page.evaluate(()=>{
-                if(document.querySelector('#productGrossPriceID > div > span')!=null)
-                {
-                    return document.querySelector('#productGrossPriceID > div > span').innerText;
-                } else return '';
-                
-                
-            })
-        },
+        typeSearch: ['sku','ean','name'],
 
-        priceSave(products, htmlText, index){
-            if(htmlText !='')
-            {
-                products[index].buy_price = htmlText.slice(0,htmlText.indexOf('zł')-1);
-                products[index].buy_price = parseFloat(products[index].buy_price);
-                products[index].buy_price = (products[index].buy_price).toFixed(2);
-                products[index].buy_price = parseFloat(products[index].buy_price);
-            }else{
-                products[index].buy_price = 0;
-            }
-
-            return products;
+        async getStoragePrice(productPrice, priceHTML,tax){
+            const priceNetto = priceHTML.slice(0,priceHTML.indexOf('zł')).replaceAll(',','.') * 1
+            productPrice.netto = priceNetto
+            productPrice.brutto = wholesalers.bruttoPrice(priceNetto,tax)
+            return productPrice
         }
     },
     TAYMA:{
         urls:{
-            login: 'https://tayma.pl/pl/signin.html',
-            search:'https://tayma.pl/pl/noproduct.html?reason=product&text=',
+            login: 'https://hurtownia.tayma.pl/signin.php',
             logout:'https://tayma.pl/login.php?operation=logout'
         },
         access:{
             login:process.env.tayma_login || '',
             password:process.env.tayma_pass || ''
         },
-        buttons: {
+        alerts:{
             cookies:'#ckdsclmrshtdwn_v2 > span',
-            login:'div.signin_buttons.col-md-10.col-12 > button',
+            extraCookies: false,
+            notifications: false
         },
         selectors:{
-            toWaitFor:'#ckdsclmrshtdwn_v2 > span',
-            toLogin:'#user_login',
-            toPassword:'#user_pass',
-            toPrice:'#projector_price_value'
+            name:'#search .product-name',
+            notFound: '#menu_messages_warning',
+            login:'#signin_login_input',
+            employee: false,
+            password:'#signin_pass_input',
+            price:'#search > div > div > div.product_prices > span.price',
+            submit: '#signin-form_box_sub_1 > form > button',
+            preLogin: false,
+            search: '#menu_search_text',
+            searchBtn: '.icon-search'
         },
-        
-        async priceGet(page){
-            return await page.evaluate(()=>{
-                if(document.querySelector('#projector_price_value')!=null)
-                {
-                    return document.querySelector('#projector_price_value').textContent;
-                } else return '';
-                
-                
-            })
+        typeSearch: ['ean','sku','name'],
+
+        async getStoragePrice(productPrice, priceHTML,tax){
+            const priceNetto = priceHTML.slice(0,priceHTML.indexOf('zł')).replaceAll(',','.') * 1
+            productPrice.netto = priceNetto
+            productPrice.brutto = wholesalers.bruttoPrice(priceNetto,tax)
+            return productPrice
+        }
+    },
+    B2BTRADE:{
+        urls:{
+            login: 'http://b2btrade.eu/',
+            logout:'http://b2btrade.eu/Account/Logout'
         },
-        
-        priceSave(products, htmlText, index){
-            if(htmlText !='') {
-                const priceText = htmlText.slice(0,htmlText.indexOf('zł')-1)
-                if(priceText[0] == '0') {
-                    products[index].buy_price = parseFloat(priceText.slice(2))* 1.23 / 100
-                } else {
-                    products[index].buy_price = parseFloat(priceText).toFixed(2) * 1.23
-                }      
-                
-                products[index].buy_price = (products[index].buy_price).toFixed(2);
-                products[index].buy_price = parseFloat(products[index].buy_price);
-            } else {
-                products[index].buy_price = 0;
-            }
-            
-            return products;
+        access:{
+            login:process.env.b2btrade_login || '',
+            employee:process.env.b2btrade_employee || '',
+            password:process.env.b2btrade_pass || ''
+        },
+        alerts:{
+            cookies: false,
+            extraCookies: false,
+            notifications: false
+        },
+        selectors:{
+            name:'div h3 > a.green',
+            notFound: '#main .items-not-found',
+            login:'#Login',
+            employee:'#UserName',
+            password:'#Password',
+            price:'div:nth-child(3) > span.green',
+            submit: '#loginForm button[type="submit"]',
+            preLogin: '#main > div.header-container.clearfix > div.header-menu-info-container > div.clearfix > button:nth-child(2)',
+            search: '#searchPanelContainer input.search',
+            searchBtn: '#searchPanelContainer i'
+        },
+        typeSearch: ['ean','sku','name'],
+
+        async getStoragePrice(productPrice, priceHTML,tax){
+            const priceNetto = priceHTML.slice(priceHTML.indexOf(' ') + 1).replaceAll(',','.') * 1
+            productPrice.netto = priceNetto
+            productPrice.brutto = wholesalers.bruttoPrice(priceNetto,tax)
+            return productPrice
         }
     },
     ACTION:{
         urls:{
             login: 'https://is3.action.pl/user/signin',
-            search:'https://is3.action.pl/products?keyword=',
             logout:'https://is3.action.pl/user/signout'
         },
         access:{
             login:process.env.action_login || '',
             password:process.env.action_pass || ''
         },
-        buttons: {
-            cookies:'',
-            login:'#login-submit-button',
+        alerts:{
+            cookies: false,
+            extraCookies: '#unpaid-invoices-modal i',
+            notifications: false
         },
         selectors:{
-            toWaitFor:'#login-submit-button',
-            toLogin:'#UserName',
-            toPassword:'#Password',
-            toPrice:'#projector_price_value'
+            name:'.description a.product-cart-trigger',
+            notFound: '.empty-search',
+            login:'#UserName',
+            password:'#Password',
+            price:'#default-list span.price-orig',
+            submit: '#login-submit-button',
+            preLogin: false,
+            search: '#main-search-keyword',
+            searchBtn: '.search-bar .fa-search'
         },
-        
-        async priceGet(page){
-            return await page.evaluate(()=>{
-                if(document.querySelector('#projector_price_value')!=null)
-                {
-                    return document.querySelector('#projector_price_value').textContent;
-                } else return '';
-                
-                
-            })
-        },
-        
-        priceSave(products, htmlText, index){
-            if(htmlText !='') {
-                const priceText = htmlText.slice(0,htmlText.indexOf('zł')-1)
-                if(priceText[0] == '0') {
-                    products[index].buy_price = parseFloat(priceText.slice(2))* 1.23 / 100
-                } else {
-                    products[index].buy_price = parseFloat(priceText).toFixed(2) * 1.23
-                }      
-                
-                products[index].buy_price = (products[index].buy_price).toFixed(2);
-                products[index].buy_price = parseFloat(products[index].buy_price);
-            } else {
-                products[index].buy_price = 0;
+        typeSearch: ['ean','sku','name'],
+
+        async getStoragePrice(productPrice, priceHTML,tax){
+            if(priceHTML) {
+                const priceNetto = priceHTML.slice(0,priceHTML.indexOf('PLN')).replaceAll(',','.') * 1
+                productPrice.netto = priceNetto
+                productPrice.brutto = wholesalers.bruttoPrice(priceNetto,tax)
             }
-            
-            return products;
+            return productPrice
+        }
+    },
+    ABONLINE:{
+        urls:{
+            login: 'https://www.abonline.pl/',
+            logout: false
+        },
+        access:{
+            login:process.env.abonline_login || '',
+            password:process.env.abonline_pass || ''
+        },
+        alerts:{
+            cookies: false,
+            extraCookies: false,
+            notifications: false
+        },
+        selectors:{
+            name:'.h1ProductName',
+            notFound: '.divNoProducts',
+            login:'#jsFrmLoginLogin',
+            password:'#jsFrmLoginPass',
+            price:'#productNettoPriceID .pricex',
+            submit: '#jsBtnSiteLogin',
+            preLogin: '#accept_cookie',
+            search:'#inpSearchBoxPhrase',
+            searchBtn: '#btnSearchBoxSearch',
+            logout:'.btnTopLogout'
+        },
+        typeSearch: ['ean','sku','name'],
+
+        async getStoragePrice(productPrice, priceHTML,tax){
+            if(priceHTML) {
+                const priceNetto = priceHTML * 1
+                productPrice.netto = priceNetto
+                productPrice.brutto = wholesalers.bruttoPrice(priceNetto,tax)
+            }
+            return productPrice
         }
     },
     BOSSOFTOYS:{
@@ -438,10 +336,10 @@ const wholesalers={
             search:'#btnSearch'
         },
         selectors:{
-            toWaitFor:'#login',
-            toLogin:'#login',
-            toPassword:'#password',
-            toPrice:'.responsive-details-value-inner',
+            name:'#login',
+            login:'#login',
+            password:'#password',
+            price:'.responsive-details-value-inner',
             search:'#txtSearchString'
         },
         remoteSearch:true,
@@ -477,7 +375,7 @@ const wholesalers={
             return products;
         }
     },
-    OMBERO:{
+    /*OMBERO:{
         urls:{
             login: 'https://ombero.pl/_login/index',
             search:'https://ombero.pl/q/?keywords=',
@@ -492,10 +390,10 @@ const wholesalers={
             login:'#login_bt',
         },
         selectors:{
-            toWaitFor:'#topInfo0 > div:nth-child(3)',
-            toLogin:'#login',
-            toPassword:'#pass',
-            toPrice:'#content > div.listning-boxes.container-fluid > div > div > article > div.product-info.row > div:nth-child(3) > div.view_price_global > div.view_price > span:nth-child(1)'
+            name:'#topInfo0 > div:nth-child(3)',
+            login:'#login',
+            password:'#pass',
+            price:'#content > div.listning-boxes.container-fluid > div > div > article > div.product-info.row > div:nth-child(3) > div.view_price_global > div.view_price > span:nth-child(1)'
         },
         
         async priceGet(page){
@@ -524,7 +422,7 @@ const wholesalers={
             
             return products;
         }
-    },
+    },*/
     VIVAB2B:{
         urls:{
             login: 'https://vivab2b.pl/konto.html?redirect=YTowOnt9',
@@ -540,10 +438,10 @@ const wholesalers={
             login:'#login-box > form > ul > li:nth-child(3) > input',
         },
         selectors:{
-            toWaitFor:'#selly-cookies > div > a',
-            toLogin:'#llogin',
-            toPassword:'#lpassword',
-            toPrice:'body > div.container-max-default.clearfix > div > div.container-main > article > div > form > div > div > div.product-description > div > div.price > span:nth-child(3) > strong'
+            name:'#selly-cookies > div > a',
+            login:'#llogin',
+            password:'#lpassword',
+            price:'body > div.container-max-default.clearfix > div > div.container-main > article > div > form > div > div > div.product-description > div > div.price > span:nth-child(3) > strong'
         },
         
         async priceGet(page){
@@ -589,10 +487,10 @@ const wholesalers={
             login:'#login-form > div.form-group.sekcja-przyciski.mb-0.d-flex > div.form-group.ml-auto.mt-auto.d-flex.mb-0 > button',
         },
         selectors:{
-            toWaitFor:'#CookieAlertClose',
-            toLogin:'#Uzytkownik',
-            toPassword:'#Haslo',
-            toPrice:'#tabela-lista-produktow > tbody > tr > td.r.CenaPoRabacie.fit-content > div > div.brutto'
+            name:'#CookieAlertClose',
+            login:'#Uzytkownik',
+            password:'#Haslo',
+            price:'#tabela-lista-produktow > tbody > tr > td.r.CenaPoRabacie.fit-content > div > div.brutto'
         },
         
         async priceGet(page){
@@ -622,67 +520,6 @@ const wholesalers={
             return products;
         }
     },
-
-    B2BTRADE:{
-        urls:{
-            login: 'http://b2btrade.eu/',
-            search:'http://b2btrade.eu/ItemsCatalog?searchString=',
-            logout:'http://b2btrade.eu/Account/Logout'
-        },
-        access:{
-            login:process.env.b2btrade_login || '',
-            employee:process.env.b2btrade_employee || '',
-            password:process.env.b2btrade_pass || ''
-        },
-        buttons: {
-            cookies:'#selly-cookies > div > a',
-            login:'#login-box > form > ul > li:nth-child(3) > input',
-            prelogin:'#main > div.header-container.clearfix > div.header-menu-info-container > div.clearfix > button:nth-child(2)'
-        },
-        selectors:{
-            toWaitFor:'#selly-cookies > div > a',
-            toLogin:'#Login',
-            toEmployee:'#UserName',
-            toPassword:'#Password',
-            toPrice:'special'
-        },
-        specialLoginActions:true,
-        
-        async specialLoginAction(page){
-            await page.click(this.buttons.prelogin);
-            await page.type(this.selectors.toLogin, login);
-            await page.type(this.selectors.toEmployee, employee);
-            await page.type(this.selectors.toPassword, password);
-            await page.click(this.buttons.login);
-        },
-
-        async priceGet(page){
-            return await page.evaluate(()=>{
-                if ((document.querySelectorAll('.rwd-col-0')[5]).textContent!=null)
-                {
-                    return document.querySelectorAll('.rwd-col-0')[5].textContent;
-                } else return '';
-            })
-        },
-        
-        priceSave(products, htmlText, index){
-            if(htmlText !='') {
-                const priceText = htmlText.replaceAll('PLN ','')
-                if(priceText[0] == '0') {
-                    products[index].buy_price = parseFloat(priceText.slice(2))* 1.23 / 100
-                } else {
-                    products[index].buy_price = parseFloat(priceText).toFixed(2) * 1.23
-                }      
-                
-                products[index].buy_price = (products[index].buy_price).toFixed(2);
-                products[index].buy_price = parseFloat(products[index].buy_price);
-            } else {
-                products[index].buy_price = 0;
-            }
-            
-            return products;
-        }
-    },
     
     TELFORCEONE:{
         urls:{
@@ -700,10 +537,10 @@ const wholesalers={
             prelogin:'#menu_open > section.top-nav.luk > div > aside > nav > div > div > div > div.pasupr > div > a.ml20.login.logout-button'
         },
         selectors:{
-            toWaitFor:'#menu_open > section.top-nav.luk > div > aside > nav > div > div > div > div.pasupr > div > a.ml20.login.logout-button',
-            toLogin:'#headerLoginUser',
-            toPassword:'#headerLoginPass',
-            toPrice:'#gridView > li > div.fr.mt22 > span'
+            name:'#menu_open > section.top-nav.luk > div > aside > nav > div > div > div > div.pasupr > div > a.ml20.login.logout-button',
+            login:'#headerLoginUser',
+            password:'#headerLoginPass',
+            price:'#gridView > li > div.fr.mt22 > span'
         },
         
         async priceGet(page){
@@ -749,10 +586,10 @@ const wholesalers={
             login:'#register > fieldset > div:nth-child(5) > input',
         },
         selectors:{
-            toWaitFor:'#cookies > div > a',
-            toLogin:'#signin_username',
-            toPassword:'#signin_password',
-            toPrice:'.price'
+            name:'#cookies > div > a',
+            login:'#signin_username',
+            password:'#signin_password',
+            price:'.price'
         },
         
         async priceGet(page){
@@ -794,17 +631,19 @@ const wholesalers={
             login:process.env.lechpol_login || '',
             password:process.env.lechpol_pass || ''
         },
-        buttons: {
+        alerts:{
             extraCookies:'div.modal-footer > button',
-            notifications:'button.wpc_w_f_c_b.wpc_w_f_c_b-n',
+            notifications:'button.wpc_w_f_c_b.wpc_w_f_c_b-n'
+        },
+        buttons: {
             cookies:'',
             login:'#my-page > div > div > div.col-12.col-lg-6.offset-lg-1 > form > div.text-center.d-sm-flex.mb-5.align-items-center.justify-content-between > button',
         },
         selectors:{
-            toWaitFor:'',
-            toLogin:'#login_email',
-            toPassword:'#login_password',
-            toPrice:''
+            name:'',
+            login:'#login_email',
+            password:'#login_password',
+            price:''
         },
 
         async extraCookieHandler(page){
@@ -860,10 +699,10 @@ const wholesalers={
             logout:'body > header > div.header-ui-line-bg > div > ul > li.last-ui.f-right-ui > div > button > span > span'
         },
         selectors:{
-            toWaitFor:'body > footer > div.message-popup-ui.cookie-notice-ui.box-ui.message-popup-lq.bottom-ui > i',
-            toLogin:'#main > div > div > div > div > div:nth-child(2) > input',
-            toPassword:'#main > div > div > div > div > div.login-password-container-ui > input',
-            toPrice:'.price-ui'
+            name:'body > footer > div.message-popup-ui.cookie-notice-ui.box-ui.message-popup-lq.bottom-ui > i',
+            login:'#main > div > div > div > div > div:nth-child(2) > input',
+            password:'#main > div > div > div > div > div.login-password-container-ui > input',
+            price:'.price-ui'
         },
         
         async priceGet(page){
@@ -910,10 +749,10 @@ const wholesalers={
             login:'#login-box > form > ul > li:nth-child(3) > input',
         },
         selectors:{
-            toWaitFor:'#selly-cookies > div > a',
-            toLogin:'#llogin',
-            toPassword:'#lpassword',
-            toPrice:'.price-ui'
+            name:'#selly-cookies > div > a',
+            login:'#llogin',
+            password:'#lpassword',
+            price:'.price-ui'
         },
         
         async priceGet(page){
@@ -961,10 +800,10 @@ const wholesalers={
             logout:'#belkaGornaNL_wyloguj > a'
         },
         selectors:{
-            toWaitFor:'#cookies_info_close_pl',
-            toLogin:'#ctl00_MainContent_tbLogin',
-            toPassword:'#ctl00_MainContent_tbHaslo',
-            toPrice:''
+            name:'#cookies_info_close_pl',
+            login:'#ctl00_MainContent_tbLogin',
+            password:'#ctl00_MainContent_tbHaslo',
+            price:''
         },
         
         async priceGet(page){
@@ -1011,10 +850,10 @@ const wholesalers={
             login:'#login_form > div > div.orderForm__buttons.orderForm__buttons--pt.row.h_end > label',
         },
         selectors:{
-            toWaitFor:'',
-            toLogin:'#login_form > div > div:nth-child(1) > div > div.orderForm__field > input',
-            toPassword:'#login_form > div > div:nth-child(2) > div > div.orderForm__field > input',
-            toPrice:'span.productFull__quick_infoBox--price'
+            name:'',
+            login:'#login_form > div > div:nth-child(1) > div > div.orderForm__field > input',
+            password:'#login_form > div > div:nth-child(2) > div > div.orderForm__field > input',
+            price:'span.productFull__quick_infoBox--price'
         },
         
         async priceGet(page){
@@ -1062,10 +901,10 @@ const wholesalers={
             search:'body > center > table > tbody > tr:nth-child(1) > td:nth-child(2) > div > div:nth-child(8) > form > p > input.zakres-nazwa-button'
         },
         selectors:{
-            toWaitFor:'',
-            toLogin:'#log_email',
-            toPassword:'#log_paswd',
-            toPrice:'document.querySelectorAll("td.col-cena.col-cena-bg-gazetka")[0]',
+            name:'',
+            login:'#log_email',
+            password:'#log_paswd',
+            price:'document.querySelectorAll("td.col-cena.col-cena-bg-gazetka")[0]',
             search:'body > center > table > tbody > tr:nth-child(1) > td:nth-child(2) > div > div:nth-child(8) > form > p > input.zakres-nazwa-text'
         },
         remoteSearch:true,
@@ -1119,10 +958,10 @@ const wholesalers={
             search:'#searchForm_cartPreview > div > div.input-group > span > button > span'
         },
         selectors:{
-            toWaitFor:'#cookie-policy-remove-button',
-            toLogin:'#email_id',
-            toPassword:'#password_id',
-            toPrice:'',
+            name:'#cookie-policy-remove-button',
+            login:'#email_id',
+            password:'#password_id',
+            price:'',
             search:'#searchInput_cartPreview'
         },
         remoteSearch:true,
@@ -1176,10 +1015,10 @@ const wholesalers={
             search:''
         },
         selectors:{
-            toWaitFor:'',
-            toLogin:'',
-            toPassword:'',
-            toPrice:'',
+            name:'',
+            login:'',
+            password:'',
+            price:'',
             search:''
         },
         
@@ -1227,10 +1066,10 @@ const wholesalers={
             login:'body > div.container > div > div > div > div > form > div.row > div > button',
         },
         selectors:{
-            toWaitFor:'body > div.container > div > div > div > div > form > div.row > div > button',
-            toLogin:'#inputEmail',
-            toPassword:'#inputPassword',
-            toPrice:'div.product-show__price-value',
+            name:'body > div.container > div > div > div > div > form > div.row > div > button',
+            login:'#inputEmail',
+            password:'#inputPassword',
+            price:'div.product-show__price-value',
         },
         
         async priceGet(page){
@@ -1271,7 +1110,7 @@ const wholesalers={
     },
 
 
-    EET:{
+    /*EET:{
         urls:{
             login: 'https://www.eetgroup.com/pl-pl',
             search:'https://www.eetgroup.com/pl-pl/?term=',
@@ -1290,10 +1129,10 @@ const wholesalers={
             prelogin:'body > div:nth-child(4) > div.flex.flex-col.bg-gray-300 > div > header > div > div.top-header-wrapper > div > article > div > div > div.header-nav-buttons > button > span > span'
         },
         selectors:{
-            toWaitFor:'#modals-container > div > div.modal.modal-visible > div > div > div > article > div > form > button',
-            toLogin:'#modals-container > div > div.modal.modal-visible > div > div > div > article > div > form > div.mt-20 > div > label',
-            toPassword:'#modals-container > div > div.modal.modal-visible > div > div > div > article > div > form > div.mt-10 > div > label',
-            toPrice:'p.text-black.font-bold.text-14.uppercase',
+            name:'#modals-container > div > div.modal.modal-visible > div > div > div > article > div > form > button',
+            login:'#modals-container > div > div.modal.modal-visible > div > div > div > article > div > form > div.mt-20 > div > label',
+            password:'#modals-container > div > div.modal.modal-visible > div > div > div > article > div > form > div.mt-10 > div > label',
+            price:'p.text-black.font-bold.text-14.uppercase',
         },
         
         async extraCookieHandler(page){
@@ -1330,9 +1169,9 @@ const wholesalers={
             
             return products;
         }
-    },
+    },*/
 
-    K2:{
+    /*K2:{
         urls:{
             login: 'https://k2distribution.pl/login/',
             search:'https://k2distribution.pl/category/?q=',
@@ -1347,10 +1186,10 @@ const wholesalers={
             login:'body > main > section.logins.mod-logins-1 > div > form > div:nth-child(3) > div:nth-child(2) > input',
         },
         selectors:{
-            toWaitFor:'body > main > section.logins.mod-logins-1 > div > form > div:nth-child(3) > div:nth-child(2) > input',
-            toLogin:'body > main > section.logins.mod-logins-1 > div > form > div:nth-child(3) > div:nth-child(1) > input',
-            toPassword:'body > main > section.logins.mod-logins-1 > div > form > div:nth-child(3) > div:nth-child(2) > input',
-            toPrice:'',
+            name:'body > main > section.logins.mod-logins-1 > div > form > div:nth-child(3) > div:nth-child(2) > input',
+            login:'body > main > section.logins.mod-logins-1 > div > form > div:nth-child(3) > div:nth-child(1) > input',
+            password:'body > main > section.logins.mod-logins-1 > div > form > div:nth-child(3) > div:nth-child(2) > input',
+            price:'',
         },
         
         async priceGet(page){
@@ -1380,9 +1219,9 @@ const wholesalers={
             
             return products;
         }
-    },
+    },*/
 
-    HOMESCREEN:{
+    /*HOMESCREEN:{
         urls:{
             login: 'https://b2b.homescreen.pl/logowanie?back=my-account',
             search:'https://b2b.homescreen.pl/module/iqitsearch/searchiqit?s=',
@@ -1397,10 +1236,10 @@ const wholesalers={
             login:'#submit-login',
         },
         selectors:{
-            toWaitFor:'#submit-login',
-            toLogin:'#field-email',
-            toPassword:'#field-password',
-            toPrice:'document.querySelector("div.product-price-and-shipping > span").innerText',
+            name:'#submit-login',
+            login:'#field-email',
+            password:'#field-password',
+            price:'document.querySelector("div.product-price-and-shipping > span").innerText',
         },
         
         async priceGet(page){
@@ -1430,6 +1269,12 @@ const wholesalers={
             
             return products;
         }
+    },*/
+    nettoPrice(brutto,tax, place = 2) {
+        return (brutto / (1 + tax / 100)).toFixed(place) * 1
+    },
+    bruttoPrice(netto,tax, place = 2) {
+        return (netto * ( 1 + tax / 100)).toFixed(place) * 1
     }
 }
 

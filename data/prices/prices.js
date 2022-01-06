@@ -1,114 +1,82 @@
-const puppeteer = require('puppeteer');
-
 const wholesalers = require('./wholesalers')
+const puppeteer = require('puppeteer')
 
 const prices = {
     async getPrices (products, storageName) {
         const storage = wholesalers[storageName]
-        //logowanie
-        let login = storage.access.login;
-        let password =  storage.access.password;
-    
-        //Pierwszy kierunek
-        let loginUrl = storage.urls.login;
-    
-        //Url wylogowania
-        let logoutUrl = storage.urls.logout;
-    
-        //poniżej wrzuć swoją ścieżkę do chrome, defaultowo jest w chromium
-        let browser = await puppeteer.launch({
+        const browser = await puppeteer.launch({
             headless: false
-        });
-    
-        let page = await browser.newPage();
-    
-        await page.setViewport({ width: 1866, height: 768});
-    
-        if(storage.buttons.hasOwnProperty('extraCookies'))
-        {
-            await storage.extraCookieHandler(page);
+        })
+
+        const page = await browser.newPage()
+
+        await page.setViewport({ width: 1600, height: 600})
+        await page.goto(storage.urls.login, {waitUntil: 'networkidle2'});
+
+        //Login
+        if(storage.selectors.preLogin) { //Pre login button
+            await page.click(storage.selectors.preLogin)
+            await page.waitForSelector(storage.selectors.login,{timeout:500})
         }
-    
-        await page.goto(loginUrl, {waitUntil: 'networkidle2'});
-    
-        if(storage.buttons.hasOwnProperty('notifications'))
-        {
-            await page.waitForSelector(storage.buttons.notifications);
-            await page.click(storage.buttons.notifications)
+        if(storage.selectors.employee) { //Special field in login form
+            await page.type(storage.selectors.employee, storage.access.employee);
         }
-    
-        if(!storage.hasOwnProperty('specialLoginActions'))
-        {
-            
-            if(storage.buttons.hasOwnProperty('preLogin'))
-            {
-                await page.click(storage.buttons.prelogin);
+        await page.type(storage.selectors.login, storage.access.login);
+        await page.type(storage.selectors.password, storage.access.password)
+        await Promise.all([ //Login submit
+            page.click(storage.selectors.submit),
+            page.waitForNavigation({waitUntil: 'networkidle2'})
+        ])
+
+        //Cookies and alerts
+        for(const option in storage.alerts) {
+            const element = storage.alerts[option]
+            if(element) {
+                await page.waitForSelector(element,{timeout:500})
+                const loaded = await page.evaluate((selector) => {
+                    return document.querySelector(selector) ? true : false}, 
+                    element)
+                if(loaded) { //Banner loaded
+                    await page.click(element)
+                    await page.waitForSelector(element,{timeout:500})
+                }
             }
-    
-            await page.type(storage.selectors.toLogin, login);
-            await page.type(storage.selectors.toPassword, password);
-    
-            await page.waitForSelector(storage.selectors.toWaitFor);
-            if(storage.buttons.cookies!=''){
-                    await page.click(storage.buttons.cookies);
-            }
-    
-            await page.click(storage.buttons.login);
         }
-        else
+
+        //Search
+        for(let i = 0; i < products.length; i++) // For each product
         {
-            await storage.specialLoginAction(page)
-        }
-    
-    
-        if(storage.urls.search)
-        {
-            await page.waitForNavigation({
-                waitUntil: 'networkidle2',
-                });
-    
-            for(let i = 0; i < products.length; i++) 
-            {
-                const localProduct = products[i]; // Copy product
-                let url = storage.urls.search + localProduct[storage.typeSearch];
-                await page.goto(url, {waitUntil: 'networkidle2'});
-                await page.waitForTimeout(500);
+            const localProduct = products[i]; // Copy product
+            for(let type of storage.typeSearch) { // Search for type
+                await page.type(storage.selectors.search,localProduct[type])
+                await page.waitForTimeout(200) // Wait after write
+                await Promise.all([ //Click and load
+                    page.click(storage.selectors.searchBtn),
+                    page.waitForNavigation({waitUntil: 'networkidle2'})
+                ])
+                await Promise.race([ // Found or not
+                    page.waitForSelector(storage.selectors.name),
+                    page.waitForSelector(storage.selectors.notFound)
+                ])
                 const htmlText = await page.evaluate((selector) => {
-                                 return document.querySelector(selector) ? document.querySelector(selector).textContent : false}, 
-                                 storage.selectors.toPrice)
-                localProduct.price.buy = await storage.getStoragePrice(localProduct.price.buy,htmlText) // Price from storage
-    
-                products[i] = await this.update(localProduct) // Profit update
+                                    return document.querySelector(selector) ? document.querySelector(selector).textContent : false}, 
+                                    storage.selectors.price)
+                if(htmlText) {
+                    localProduct.price.buy = await storage.getStoragePrice(localProduct.price.buy,htmlText,localProduct.tax_rate) // Price from storage
+                    break
+                }
             }
-        } else if(storage.hasOwnProperty('remoteSearch')) {
-            await page.goto(storage.urls.remoteSearch, {waitUntil: 'networkidle2'});
-    
-            for(let i = 0; i < products.length; i++) {
-                const localProduct = products[i] // Copy product
-                await page.waitForSelector(storage.selectors.search);
-                page.type(storage.selectors.search,localProduct[storage.typeSearch])
-                await page.waitForTimeout(2000);
-                page.click(storage.buttons.search);
-                await page.waitForTimeout(5000);
-                const htmlText = await page.evaluate((selector) => {
-                                 return document.querySelector(selector) ? document.querySelector(selector).textContent : false}, 
-                                 storage.selectors.toPrice)
-                localProduct.price.buy = await storage.getStoragePrice(localProduct.price.buy,htmlText) // Price from storage
-    
-                products[i] = await this.update(localProduct) // Profit update
-            }
+            products[i] = await this.update(localProduct) // Profit update
+        }
+
+        //Logout
+        if(storage.urls.logout) { //URL
+            await page.goto(storage.urls.logout, {waitUntil: 'networkidle2'});
+        } else { //Button
+            await page.click(storage.selectors.logout);
         }
         
-        
-        if(storage.urls.logout!='') {
-            await page.goto(logoutUrl, {waitUntil: 'networkidle2'});
-        }
-    
-        if(storage.buttons.hasOwnProperty('logout')) {
-            await page.click(storage.buttons.logout);
-        }
         await browser.close();
-    
         return products;
     },
     getProfit(productPrice) {
@@ -120,6 +88,12 @@ const prices = {
     async update(product) {
         product.profit = this.getProfit(product.price)
         return product
+    },
+    nettoPrice(brutto,tax, place = 2) {
+        return (brutto / (1 + tax / 100)).toFixed(place) * 1
+    },
+    bruttoPrice(netto,tax, place = 2) {
+        return (netto * ( 1 + tax / 100)).toFixed(place) * 1
     }
 }
 

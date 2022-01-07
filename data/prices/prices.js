@@ -114,16 +114,12 @@ const prices = {
     getProfit(productPrice) {
         return productPrice.buy.brutto ? this.calculate(productPrice) : 0
     },
-    calculate(productPrice, provision, vat) {
-        provision=(provision/100).toFixed(2)*1
+    calculate(productPrice, vat) {
         vat=(vat/100).toFixed(2)*1
         let income_tax=((productPrice.sell.netto-productPrice.buy.netto)*0.09).toFixed(2)*1;
         let vat_tax=productPrice.sell.brutto-productPrice.sell.netto;
-        let provision_tax=(provision*productPrice.sell.brutto).toFixed(2)*1;
-        let provision_vat_tax=-(23*provision_tax/123).toFixed(2)*1;
-        let provision_income_tax=-(100*0.09*provision_tax/123).toFixed(2)*1;
 
-        let profit=(productPrice.sell.brutto-(productPrice.buy.netto+income_tax+vat_tax+provision_tax+provision_vat_tax+provision_income_tax)).toFixed(2)*1;
+        let profit=(productPrice.sell.brutto-(productPrice.buy.netto+income_tax+vat_tax)).toFixed(2)*1;
         return profit;
     },
     async update(product) {

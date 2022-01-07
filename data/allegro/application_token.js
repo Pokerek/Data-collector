@@ -6,16 +6,18 @@ const clientID = process.env.CLIENT_ID||'';
 const clientSecret = process.env.CLIENT_SECRET||'';
 const basicAuth = Buffer.from(clientID+':'+clientSecret).toString('base64');
 
-const application_token = {
-    applicationTokenSchema : new mongoose.Schema({
+const applicationTokenSchema = new mongoose.Schema({
         token: String,
         token_type: String,
         obtained: Number,
         expires_in: Number,
         date_of_expiration: Number
-    }),
+    })
     
-    applicationToken : mongoose.model('application_token', applicationTokenSchema),
+const applicationToken = mongoose.model('application_token', applicationTokenSchema)
+
+const application_token = {
+    
 
     async getApplicationToken()
     {
@@ -57,13 +59,13 @@ const application_token = {
     },
 
     async createToken(data) {
-        const application_token = new this.applicationToken(data);
+        const application_token = new applicationToken(data);
         await application_token.save();
     },
 
     async getLastObtainedApplicationToken()
     {
-        let tokens=await this.applicationToken.find(function (err, tokens) {
+        let tokens=await applicationToken.find(function (err, tokens) {
             if (err) return 'error';
             else return tokens
         }).clone().catch(function(err){return err})
@@ -82,7 +84,7 @@ const application_token = {
 
         if(this.tokenReady(data))
         {
-            await this.createToken(convertToken(data));
+            await this.createToken(this.convertToken(data));
         }
         else
         {
@@ -91,5 +93,5 @@ const application_token = {
         }
     }
 } 
-
+application_token.loadNewToken()
 module.exports=application_token;

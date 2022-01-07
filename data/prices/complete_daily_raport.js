@@ -8,17 +8,19 @@ const dailyRaportSchema = new mongoose.Schema({
     godzina_raportu: String,
     zysk_całkowity: Number,
     zysk_z_outletu: Number,
+    strata_z_anulacji: Number,
     waluta: String
 })
 
 const dailyRaport = mongoose.model('daily_raport', dailyRaportSchema)
 
-const daily_raport={
+const complete_daily_raport={
 
     data_raportu: '',
     godzina_raportu: '',
-    zysk_całkowity: '',
-    zysk_z_outletu: '',
+    zysk_całkowity: 0,
+    zysk_z_outletu: 0,
+    strata_z_anulacji: 0,
     waluta: '',  
 
     async createDailyRaport(month, day)
@@ -26,8 +28,9 @@ const daily_raport={
         const today = new Date()
         this.data_raportu=week_days[today.getDay()] + " " + today.getDate() + "." + today.getMonth() + "." + today.getFullYear(); 
         this.godzina_raportu=today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
-        this.zysk_z_outletu=await orders.getProfitFromOutlet(month, day);
-        this.zysk_całkowity=await orders.getProfitFromOrders(month, day)-await check_taxes.getAllegroBillingsTotalOutcome();
+        this.zysk_z_outletu=await orders.getProfitFromOutletWithCancellations(month, day);
+        this.zysk_całkowity=await orders.getProfitFromOrdersWithCancellations(month, day)-await check_taxes.getAllegroBillingsTotalOutcome();
+        this.strata_z_anulacji=await orders.getLossFromCancellations(month, day)
         this.waluta = 'zł'
 
         this = new dailyRaport(this);
@@ -35,8 +38,4 @@ const daily_raport={
     },
 }
 
-module.exports=daily_raport;
-
-
-
-
+module.exports=complete_daily_raport;

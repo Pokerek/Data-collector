@@ -7,17 +7,18 @@ const basicAuth = Buffer.from(clientID+':'+clientSecret).toString('base64');
 const device_code = require('./device_code')
 require('dotenv').config({path:'../../.env'})
 
+const userTokenSchema = new mongoose.Schema({
+    token: String,
+    refresh_token: String,
+    token_type: String,
+    obtained: Number,
+    expires_in: Number,
+    date_of_expiration: Number
+})
+
+const userToken = mongoose.model('user_token', userTokenSchema)
+
 const user_token={
-    userTokenSchema : new mongoose.Schema({
-        token: String,
-        refresh_token: String,
-        token_type: String,
-        obtained: Number,
-        expires_in: Number,
-        date_of_expiration: Number
-    }),
-    
-    userToken : mongoose.model('user_token', userTokenSchema),
 
     async getUserToken()
     {
@@ -93,13 +94,13 @@ const user_token={
     },
     
     async createToken(data) {
-        const user_token = new this.userToken(data)
+        const user_token = new userToken(data)
         await user_token.save()
     },
 
     async getLastObtainedUserToken()
     {
-        let tokens=await this.userToken.find(function (err, tokens) {
+        let tokens=await userToken.find(function (err, tokens) {
             if (err) return 'error';
             else return tokens
         }).clone().catch(function(err){return err})

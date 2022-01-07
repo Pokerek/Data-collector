@@ -1,4 +1,3 @@
-const mongoose = require('../connect')
 const axios = require('axios')
 const application_token=require('./application_token')
 const user_token=require('./user_token')
@@ -8,7 +7,7 @@ const check_taxes={
     {
         const userToken = await user_token.getLastObtainedUserToken()
 
-        if(isTokenValid(userToken))
+        if(user_token.isTokenValid(userToken))
         {
             try{
                     const load = await axios({
@@ -27,7 +26,7 @@ const check_taxes={
                     return false;
                 }
         }else{
-            console.log('Token is not valid.');
+            console.log('User token is not valid.');
             return false;
         }
         
@@ -37,7 +36,7 @@ const check_taxes={
     {
         const userToken = await user_token.getLastObtainedUserToken()
 
-        if(isTokenValid(userToken))
+        if(user_token.isTokenValid(userToken))
         {
             try{
                     const load = await axios({
@@ -59,7 +58,7 @@ const check_taxes={
                     return false;
                 }
         }else{
-            console.log('Token is not valid.');
+            console.log('User token is not valid.');
             return false;
         }
         
@@ -69,7 +68,7 @@ const check_taxes={
     {
         const applicationToken = await application_token.getLastObtainedApplicationToken()
 
-        if(isTokenValid(applicationToken))
+        if(application_token.isTokenValid(applicationToken))
         {
             try{
                     const load = await axios({
@@ -88,7 +87,7 @@ const check_taxes={
                     return false;
                 }
         }else{
-            console.log('Token is not valid.');
+            console.log('Application token is not valid.');
             return false;
         }
         
@@ -98,7 +97,7 @@ const check_taxes={
     {
         const userToken = user_token.getLastObtainedUserToken()
 
-        if(userToken && this.isTokenValid(userToken))
+        if(userToken && user_token.isTokenValid(userToken))
         {
             try{
                 const load = await axios({
@@ -123,7 +122,7 @@ const check_taxes={
         }
     },
 
-    async getAllegroBillingsTotalOutcome()
+    async getAllegroBillingsTotalDailyOutcome(year, month, day)
     {
         const today_billings = await this.getAllegroBillings()
         let total_outcome=0
@@ -145,14 +144,5 @@ const check_taxes={
 
 
 }
-
-(async() => {
-    //let check=await getLastObtainedToken()
-    //console.log(check)
-    //console.log(isTokenValid(check))
-    //console.log(await getTaxSettings(11598909174))67303
-    //console.log(await getTaxSettingsForCategory(67303))
-    //console.log(await getPaymentsHistory())
-})();
 
 module.exports=check_taxes

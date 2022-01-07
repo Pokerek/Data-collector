@@ -6,18 +6,19 @@ const clientID = process.env.CLIENT_ID||'';
 const clientSecret = process.env.CLIENT_SECRET||'';
 const basicAuth = Buffer.from(clientID+':'+clientSecret).toString('base64');
 
+const deviceCodeSchema = new mongoose.Schema({
+    user_code: String,
+    device_code: String,
+    interval: String,
+    obtained: Number,
+    expires_in: Number,
+    date_of_expiration: Number,
+    verification_uri_complete: String
+})
+
+const deviceCode = mongoose.model('device_code', deviceCodeSchema)
+
 const device_code={
-    deviceCodeSchema : new mongoose.Schema({
-        user_code: String,
-        device_code: String,
-        interval: String,
-        obtained: Number,
-        expires_in: Number,
-        date_of_expiration: Number,
-        verification_uri_complete: String
-    }),
-    
-    deviceCode : mongoose.model('device_code', deviceCodeSchema),
 
     async getDeviceCode()
     {
@@ -64,13 +65,13 @@ const device_code={
     },
 
     async createCode(data) {
-        const device_code = new this.deviceCode(data)
+        const device_code = new deviceCode(data)
         await device_code.save()
     },
 
     async getLatestObtainedDeviceCode()
     {
-        let device_codes=await this.deviceCode.find(function (err, device_codes) {
+        let device_codes=await deviceCode.find(function (err, device_codes) {
             if (err) return false;
             else return device_codes
         }).clone().catch(function(err){return false})

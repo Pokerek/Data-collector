@@ -136,7 +136,7 @@ const check_taxes={
 
         }else
         {
-            console.log('Billings not loaded correctly!\n Profit is without taking into account Allegro commission and delivery costs.')
+            console.log('Billings are not loaded correctly!\n Profit is without taking into account Allegro commission and delivery costs.')
         }
         
         return total_outcome;

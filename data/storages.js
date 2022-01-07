@@ -1,4 +1,5 @@
 const mongoose = require('./connect')
+const baselinker = require('./baselinker')
 
 const storgeSchema = new mongoose.Schema({
   storage_id: String,

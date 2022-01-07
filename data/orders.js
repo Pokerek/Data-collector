@@ -58,8 +58,6 @@ const orders = {
         ean: product.ean,
         storage_id: product.storage_id,
         storage_name: '',
-        cancelled: false,
-        delivery_price_returned: false,
         price: {
           buy: {
             netto: 0,
@@ -84,6 +82,8 @@ const orders = {
       admin_comments: order.admin_comments,
       delivery_method: order.delivery_method,
       delivery_price: order.delivery_price,
+      cancelled: false,
+      delivery_price_returned: false,
       products: productsArr
     }
   },
@@ -133,7 +133,7 @@ const orders = {
       }
     } while (nextDate < endDate)
     for(const storage in productsBuffor) {
-      productsBuffor[storage] = await prices.getPrices(productsBuffor[storage],storage) //Prices load from storages
+      //productsBuffor[storage] = await prices.getPrices(productsBuffor[storage],storage) //Prices load from storages
       for(const product of productsBuffor[storage]) {
         products.update(product)
       }
@@ -191,10 +191,9 @@ const orders = {
     }
   },
 
-  async loadOrdersFromDatabase(month, day)
+  async loadOrdersFromDatabase(year, month, day)
     {
-      const currentYear=(new Date).getFullYear()
-      const startDate = await baselinker.convertData(currentYear, month, day),
+      const startDate = await baselinker.convertData(year, month, day),
         endDate = startDate + 86400
       let orders=await Order.find(function (err, orders) {
           if (err) return 'error';
@@ -213,9 +212,9 @@ const orders = {
       return ordersFilteredByDate;
     },
 
-    async getProfitFromOrders(month, day)
+    async getProfitFromOrders(year, month, day)
     {
-        const orders=await this.loadOrdersFromDatabase(month, day);
+        const orders=await this.loadOrdersFromDatabase(year, month, day);
         let profit=0;
 
         for(let order of orders)
@@ -231,9 +230,9 @@ const orders = {
         return profit;
     },
 
-    async getProfitFromOrdersWithCancellations(month, day)
+    async getProfitFromOrdersWithCancellations(year, month, day)
     {
-        const orders=await this.loadOrdersFromDatabase(month, day);
+        const orders=await this.loadOrdersFromDatabase(year, month, day);
         this.matchCancellations(orders);
         let profit=0;
 
@@ -269,9 +268,9 @@ const orders = {
         return profit;
     },
 
-    async getProfitFromOutlet(month, day)
+    async getProfitFromOutlet(year, month, day)
     {
-        const orders=await this.loadOrdersFromDatabase(month, day);
+        const orders=await this.loadOrdersFromDatabase(year, month, day);
         let profit=0;
 
         for(let order of orders)
@@ -289,9 +288,9 @@ const orders = {
     },
 
 
-    async getProfitFromOutletWithCancellations(month, day)
+    async getProfitFromOutletWithCancellations(year, month, day)
     {
-        const orders=await this.loadOrdersFromDatabase(month, day);
+        const orders=await this.loadOrdersFromDatabase(year, month, day);
         let profit=0;
 
         for(let order of orders)
@@ -334,9 +333,9 @@ const orders = {
         return profit;
     },
 
-    async getLossFromCancellations(month, day)
+    async getLossFromCancellations(year, month, day)
     {
-      const orders=await this.loadOrdersFromDatabase(month, day);
+      const orders=await this.loadOrdersFromDatabase(year, month, day);
       this.matchCancellations(orders);
       let loss=0;
 

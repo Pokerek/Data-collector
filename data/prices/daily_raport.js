@@ -6,8 +6,8 @@ const week_days = ['Niedziela', 'Poniedziałek', 'Wtorek', 'Środa', 'Czwartek',
 const dailyRaportSchema = new mongoose.Schema({
     data_raportu: String,
     godzina_raportu: String,
-    zysk_całkowity: Number,
     zysk_z_outletu: Number,
+    zysk_całkowity: Number,
     waluta: String
 })
 
@@ -17,21 +17,20 @@ const daily_raport={
 
     data_raportu: '',
     godzina_raportu: '',
-    zysk_całkowity: '',
     zysk_z_outletu: '',
+    zysk_całkowity: '',
     waluta: '',  
 
-    async createDailyRaport(month, day)
+    async createDailyRaport(year, month, day)
     {
         const today = new Date()
-        this.data_raportu=week_days[today.getDay()] + " " + today.getDate() + "." + today.getMonth() + "." + today.getFullYear(); 
+        this.data_raportu=week_days[today.getDay()] + " " + today.getDate() + "." + today.getMonth()+1 + "." + today.getFullYear(); 
         this.godzina_raportu=today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
-        this.zysk_z_outletu=await orders.getProfitFromOutlet(month, day);
-        this.zysk_całkowity=await orders.getProfitFromOrders(month, day)-await check_taxes.getAllegroBillingsTotalOutcome();
+        this.zysk_z_outletu=await orders.getProfitFromOutlet(year, month, day);
+        this.zysk_całkowity=(await orders.getProfitFromOrders(year, month, day)-await check_taxes.getAllegroBillingsTotalDailyOutcome()).toFixed(2)*1;
         this.waluta = 'zł'
 
-        this = new dailyRaport(this);
-        this.save();
+        new dailyRaport(this).save();
     },
 }
 

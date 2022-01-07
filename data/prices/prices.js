@@ -112,14 +112,17 @@ const prices = {
         return products;
     },
     getProfit(productPrice) {
-        return productPrice.buy.brutto ? this.calculate(productPrice) : 0
+        return productPrice.buy.brutto ? this.calculateProductProfit(productPrice) : 0
     },
-    calculate(productPrice, vat) {
+    calculateDeliveryCosts(){
+        return 0 // do uzupełnienia
+    },
+    calculateProductProfit(productPrice, vat) {
         vat=(vat/100).toFixed(2)*1
         let income_tax=((productPrice.sell.netto-productPrice.buy.netto)*0.09).toFixed(2)*1;
         let vat_tax=productPrice.sell.brutto-productPrice.sell.netto;
-
-        let profit=(productPrice.sell.brutto-(productPrice.buy.netto+income_tax+vat_tax)).toFixed(2)*1;
+        let delivery_costs=this.calculateDeliveryCosts();
+        let profit=(productPrice.sell.brutto-(productPrice.buy.netto+income_tax+vat_tax+delivery_costs)).toFixed(2)*1;
         return profit;
     },
     async update(product) {

@@ -26,10 +26,10 @@ const complete_daily_raport={
     async createDailyRaport(month, day)
     {
         const today = new Date()
-        this.data_raportu=week_days[today.getDay()] + " " + today.getDate() + "." + today.getMonth() + "." + today.getFullYear(); 
+        this.data_raportu=week_days[today.getDay()] + " " + today.getDate() + "." + today.getMonth()+1 + "." + today.getFullYear(); 
         this.godzina_raportu=today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
         this.zysk_z_outletu=await orders.getProfitFromOutletWithCancellations(month, day);
-        this.zysk_całkowity=await orders.getProfitFromOrdersWithCancellations(month, day)-await check_taxes.getAllegroBillingsTotalOutcome();
+        this.zysk_całkowity=await orders.getProfitFromOrdersWithCancellations(month, day)-await check_taxes.getAllegroBillingsTotalDailyOutcome();
         this.strata_z_anulacji=await orders.getLossFromCancellations(month, day)
         this.waluta = 'zł'
 

@@ -66,7 +66,8 @@ const baselinker = {
     } catch(err) {
         console.log(err);
     }
-  }
+  },
+  
 }
 
 module.exports = baselinker

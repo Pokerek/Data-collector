@@ -11,6 +11,8 @@ const orderSchema = new mongoose.Schema({
 	admin_comments: String,
 	delivery_method: String,
   delivery_price: Number,
+  cancelled: Boolean,
+  delivery_price_returned: Boolean,
 	products: [{
 			name: String,
 			sku: String,
@@ -30,8 +32,8 @@ const orderSchema = new mongoose.Schema({
 			tax_rate: Number,
 			quantity: Number,
       profit: Number,
-			location:String,
-			auction_id: String
+			location: String,
+			auction_id: String,
   }]
 })
 
@@ -76,6 +78,8 @@ const orders = {
       admin_comments: order.admin_comments,
       delivery_method: order.delivery_method,
       delivery_price: order.delivery_price,
+      cancelled: false,
+      delivery_price_returned: false,
       products: productsArr
     }
   },
@@ -125,7 +129,7 @@ const orders = {
       }
     } while (nextDate < endDate)
     for(const storage in productsBuffor) {
-      productsBuffor[storage] = await prices.getPrices(productsBuffor[storage],storage) //Prices load from storages
+      //productsBuffor[storage] = await prices.getPrices(productsBuffor[storage],storage) //Prices load from storages
       for(const product of productsBuffor[storage]) {
         products.update(product)
       }
@@ -133,7 +137,226 @@ const orders = {
     ordersBuffor.forEach((order) => {
       this.create(order) // Create new order
     })
-  }
+  },
+
+  async getCancellations(token, year, month, day)
+  {
+      const date=convertToUnixTimestamp(year, month, day, 0, 0, 0)
+      const info = new URLSearchParams({
+          'method':'getOrders',
+          'parameters':`{"date_from":+${date},"status_id":+${289429}}`
+      }).toString().replaceAll('%2B','+')
+
+      try{
+      const load = await axios({
+          method: 'post',
+          url:'https://api.baselinker.com/connector.php',
+          headers:{
+          'X-BLToken': token,
+          },
+          data:info,
+          
+      });
+          let cancellationsId=[]
+          for(let order of load.data.orders)
+          {
+              cancellationsId.push(order.order_id)
+          }
+
+          return cancellationsId
+      } catch(err) {
+          console.log(err);
+      }
+  },
+
+  async matchCancellations(orders)
+  {
+    const cancellationsId=await this.getCancellations();
+
+    for(let order of orders)
+    {
+      if(cancellationsId.includes(orders.order_id))
+      {
+        order.cancelled=true;
+
+        if(order.admin_comments.includes('zwrot z dostawą'))
+        {
+          order.delivery_price_returned=true;
+        }
+      }
+    }
+  },
+
+  async loadOrdersFromDatabase(year, month, day)
+    {
+      const startDate = await baselinker.convertData(year, month, day),
+        endDate = startDate + 86400
+      let orders=await Order.find(function (err, orders) {
+          if (err) return 'error';
+          else return orders
+      }).clone().catch(function(err){return err})
+      
+      let ordersFilteredByDate=[]
+
+      for(let order of orders)
+      {
+        if(order.date_confirmed>startDate && order.date_confirmed<endDate)
+        {
+          ordersFilteredByDate.push(order)
+        }
+      }
+      return ordersFilteredByDate;
+    },
+
+    async getProfitFromOrders(year, month, day)
+    {
+        const orders=await this.loadOrdersFromDatabase(year, month, day);
+        let profit=0;
+
+        for(let order of orders)
+        {
+              for(let product of order.products)
+              {
+                  profit+=product.profit;
+              }
+              
+              profit+=order.delivery_price;
+        }
+
+        return profit;
+    },
+
+    async getProfitFromOrdersWithCancellations(year, month, day)
+    {
+        const orders=await this.loadOrdersFromDatabase(year, month, day);
+        this.matchCancellations(orders);
+        let profit=0;
+
+        for(let order of orders)
+        {
+            if(!order.cancelled)
+            {
+              for(let product of order.products)
+              {
+                  profit+=product.profit;
+              }
+              
+              profit+=order.delivery_price
+            }
+            else
+            {
+              for(let product of order.products)
+              {
+                  profit-=product.price.buy.brutto;
+              }
+
+              if(order.delivery_price_returned)
+              {
+                profit-=order.delivery_price
+              }
+              else
+              {
+                profit+=order.delivery_price
+              }
+            }
+        }
+
+        return profit;
+    },
+
+    async getProfitFromOutlet(year, month, day)
+    {
+        const orders=await this.loadOrdersFromDatabase(year, month, day);
+        let profit=0;
+
+        for(let order of orders)
+        {
+            for(let product of order.products)
+            {
+                if(product.location='')
+                {
+                    profit+=product.profit;
+                }
+            }
+        }
+
+        return profit;
+    },
+
+
+    async getProfitFromOutletWithCancellations(year, month, day)
+    {
+        const orders=await this.loadOrdersFromDatabase(year, month, day);
+        let profit=0;
+
+        for(let order of orders)
+        {
+            for(let product of order.products)
+            {
+                if(product.location='')
+                {
+                    profit+=product.profit;
+                }
+            }
+        }
+
+        for(let order of orders)
+        {
+            if(!order.cancelled)
+            {
+              for(let product of order.products)
+              {
+                  if(product.location='')
+                  {
+                      profit+=product.profit;
+                  }
+              }
+              
+              profit+=order.delivery_price
+            }
+            else
+            {
+              if(order.delivery_price_returned)
+              {
+                profit-=order.delivery_price
+              }
+              else
+              {
+                profit+=order.delivery_price
+              }
+            }
+        }
+        return profit;
+    },
+
+    async getLossFromCancellations(year, month, day)
+    {
+      const orders=await this.loadOrdersFromDatabase(year, month, day);
+      this.matchCancellations(orders);
+      let loss=0;
+
+      for(let order of orders)
+      {
+          if(order.cancelled)
+          {
+            for(let product of order.products)
+            {
+                loss+=product.price.buy.brutto;
+            }
+
+            if(order.delivery_price_returned)
+            {
+              loss+=order.delivery_price
+            }
+            else
+            {
+              loss-=order.delivery_price
+            }
+          }
+      }
+
+      return loss;
+    },
 }
 
 module.exports = orders

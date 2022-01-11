@@ -5,9 +5,10 @@ const storages = require('./storages')*/
 const orders = require('./orders');
 const examples = require('./examples')
 const prices = require('./prices/prices')
-const wholesalers = require('./prices/wholesalers')
+const wholesalers = require('./prices/wholesalers')*/
+const daily_raport=require('./prices/daily_raport')
 
-//orders.updateFromData(2021,12,30)
+//orders.updateFromData(2022 , 1, 6)
 
 const testingAll = async () => {
   //const storageName = "B2BTRADE"

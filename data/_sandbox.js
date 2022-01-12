@@ -1,12 +1,12 @@
-/*const baselinker = require('./baselinker');
-const products = require('./products');
-const statuses = require('./statuses')
-const storages = require('./storages')*/
-const orders = require('./orders');
+const baselinker = require('./baselinker');
+//const products = require('./products');
+//const statuses = require('./statuses')
+//const storages = require('./storages')
+//const orders = require('./orders');
 const examples = require('./examples')
 const prices = require('./prices/prices')
-const wholesalers = require('./prices/wholesalers')*/
-const daily_raport=require('./prices/daily_raport')
+//const wholesalers = require('./prices/wholesalers')
+//const daily_raport=require('./prices/daily_raport')
 
 //orders.updateFromData(2022 , 1, 6)
 
@@ -48,4 +48,11 @@ const testingSingle = async (storageName) => {
   console.log(`Execution time for ${storageName}: ${end}s`)
 }
 
-orders.updateFromData(2021,12,30)
+const test = async () => {
+  const data = await baselinker.getCancellations(baselinker.convertData(2021,12,30))
+  console.log(data)
+}
+
+const profit = prices.calculateProductProfit({buy: {netto: 11.37, brutto: 13.99}, sell: {netto: 16.26, brutto: 20.99}},23)
+
+console.log(profit)

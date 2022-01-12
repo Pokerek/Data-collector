@@ -1,14 +1,13 @@
 const wholesalers = require('./wholesalers')
 const puppeteer = require('puppeteer')
 
-const browser = await puppeteer.launch({
-    headless: false
-})
-
 const prices = {
     async getPrices (products, storageName) {
         const storage = wholesalers[storageName]
 
+        const browser = await puppeteer.launch({
+            headless: false
+        })
 
         const page = await browser.newPage()
 
@@ -141,8 +140,8 @@ const prices = {
     calculateDeliveryCosts(){
         return 0 // do uzupełnienia
     },
-    calculateProductProfit(productPrice, vat) {
-        vat=(vat/100).toFixed(2)*1
+    calculateProductProfit(productPrice, tax) {
+        tax=(tax/100).toFixed(2)*1
         let income_tax=((productPrice.sell.netto-productPrice.buy.netto)*0.09).toFixed(2)*1;
         let vat_tax=productPrice.sell.brutto-productPrice.sell.netto;
         let delivery_costs=this.calculateDeliveryCosts();

@@ -4,7 +4,7 @@ require('dotenv').config({path:'../.env'})
 const token = process.env.BL_TOKEN || ''
 
 const baselinker = {
-  async convertData(year, month, day, hours = 0, minutes = 0, seconds = 0){ 
+  convertData(year, month, day, hours = 0, minutes = 0, seconds = 0){ 
     return new Date(year, month-1, day, hours, minutes, seconds).getTime()/1000
   },
   async getOrders(data) {
@@ -67,7 +67,33 @@ const baselinker = {
         console.log(err);
     }
   },
-  
+  async getCancellations(date)
+  {
+    const info = new URLSearchParams({
+        'method':'getOrders',
+        'parameters':`{"date_from":+${date},"status_id":+${289429}}`
+    }).toString().replaceAll('%2B','+')
+
+    try{
+      const load = await axios({
+          method: 'post',
+          url:'https://api.baselinker.com/connector.php',
+          headers:{
+          'X-BLToken': token,
+          },
+          data:info,
+          
+      });
+      let cancellationsId=[]
+      for(let order of load.data.orders) {
+        cancellationsId.push(order.order_id)
+      }
+
+      return cancellationsId
+    } catch(err) {
+        console.log(err);
+    }
+  }
 }
 
 module.exports = baselinker

@@ -6,6 +6,8 @@ const prices = require('./prices/prices')
 
 const orderSchema = new mongoose.Schema({
   order_id: Number,
+  shop_order_id: Number,
+  date_add: Number,
 	date_confirmed: Number,
 	date_in_status: Number,
 	admin_comments: String,
@@ -73,6 +75,8 @@ const orders = {
     })
     return {
       order_id: order.order_id,
+      shop_order_id: order.shop_order_id,
+      date_add: order.date_add,
       date_confirmed: order.date_confirmed,
       date_in_status: order.date_in_status,
       admin_comments: order.admin_comments,
@@ -91,7 +95,7 @@ const orders = {
     return order[0]
   },  
   async updateFromData (year, month, day, time = 86400) {
-    const startDate = await baselinker.convertData(year, month, day),
+    const startDate = baselinker.convertData(year, month, day),
           endDate = startDate + time,
           ordersBuffor = []
     let productsBuffor = []
@@ -139,39 +143,10 @@ const orders = {
     })
   },
 
-  async getCancellations(token, year, month, day)
-  {
-      const date=convertToUnixTimestamp(year, month, day, 0, 0, 0)
-      const info = new URLSearchParams({
-          'method':'getOrders',
-          'parameters':`{"date_from":+${date},"status_id":+${289429}}`
-      }).toString().replaceAll('%2B','+')
-
-      try{
-      const load = await axios({
-          method: 'post',
-          url:'https://api.baselinker.com/connector.php',
-          headers:{
-          'X-BLToken': token,
-          },
-          data:info,
-          
-      });
-          let cancellationsId=[]
-          for(let order of load.data.orders)
-          {
-              cancellationsId.push(order.order_id)
-          }
-
-          return cancellationsId
-      } catch(err) {
-          console.log(err);
-      }
-  },
-
   async matchCancellations(orders)
   {
-    const cancellationsId=await this.getCancellations();
+    const data = baselinker.convertdata(year, month, day)
+    const cancellationsId=await baselinker.getCancellations(data);
 
     for(let order of orders)
     {
@@ -189,7 +164,7 @@ const orders = {
 
   async loadOrdersFromDatabase(year, month, day)
     {
-      const startDate = await baselinker.convertData(year, month, day),
+      const startDate = baselinker.convertData(year, month, day),
         endDate = startDate + 86400
       let orders=await Order.find(function (err, orders) {
           if (err) return 'error';

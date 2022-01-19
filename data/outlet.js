@@ -313,12 +313,12 @@ const outlet={
               if(outletproduct.quantity > product.quantity)
               {
                 let newquantity = outletproduct.quantity - product.quantity
-                actualizeQuantityInDatabaseProduct(outletproduct._id, newquantity)
+                await actualizeQuantityInDatabaseProduct(outletproduct._id, newquantity)
 
                 return `Zaktualizowano stan produktu ${outletproduct._id} na ${newquantity}, przez zamówienie ${product.order_id}`
               }else
               {
-                removeProductFromDatabase(outletproduct_id)
+                await removeProductFromDatabase(outletproduct_id)
                 return `Usunięto z bazy danych outletu produkt ${outletproduct.ean}, przez zamówienie ${product.order_id}`
               }
             }
@@ -330,8 +330,11 @@ const outlet={
     async updateOutlet(year, month, day)
     {
       await this.loadOutlet(year, month, day)
+      console.log('Nowy outlet załadowany do bazy danych')
       await this.removeSold()
+      console.log('Zmiany w istniejącym w bazie danych outlecie dokonane')
       await this.addOutletToSystem()
+      console.log('Zmiany w bazie danych dokonane')
     }
 
 }

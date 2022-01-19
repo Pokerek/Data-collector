@@ -443,8 +443,8 @@ const baselinker = {
 
   async addProductToSystem(product)
   {
-    const checkFreestore =await this.checkIfProductIsInFreestore(product.ean)
-    const checkDomyslny =await this.checkIfProductIsInDomyslny(product.ean)
+    const checkFreestore =await this.checkIfProductIsInFreestore(product.ean, product.sku)
+    const checkDomyslny =await this.checkIfProductIsInDomyslny(product.ean, product.sku)
 
     if(checkDomyslny!=false)
     {

@@ -20,6 +20,7 @@ const outletSchema = new mongoose.Schema({
 			tax_rate: Number,
 			quantity: Number,
       order_id: String,
+      auction_id: String,
       found_data: {
         ean: String,
         sku: String,
@@ -74,6 +75,16 @@ const outlet={
       orderId=product.auction_id
     }
 
+    let productPriceBrutto=0
+    if(product.price!=undefined)
+    {
+      productPriceBrutto=product.price.sell.brutto
+    }
+    else
+    {
+      productPriceBrutto=product.price_brutto
+    }
+
     return {
         name: product.name,
         sku: sku,
@@ -82,14 +93,15 @@ const outlet={
         storage_full_id: product.storage + '_' + product.storage_id,
         price: {
           sell: {
-            netto: prices.nettoPrice(product.price_brutto,product.tax_rate),
-            brutto: product.price_brutto
+            netto: prices.nettoPrice(productPriceBrutto, product.tax_rate),
+            brutto: productPriceBrutto
           }
         },
         tax_rate: product.tax_rate,
         quantity: product.quantity,
         location: product.location,
         order_id: orderId,
+        auction_id: orderId,
         found_data: {},
         added_into_system: false
       }
@@ -101,9 +113,9 @@ const outlet={
     const actualOutlet = await this.loadOutletFromDatabase()
 
     let Outlet_products=[]
-
+    await orders.matchCancellations(year, month, day)
     let todayOrders=await orders.loadOrdersFromDatabase(year, month, day);
-    await orders.matchCancellations(todayOrders);
+
     const notFilteredFullCancellations=todayOrders
 
     const notFullCancellations=await baselinker.getNotFullCancellations()
@@ -134,7 +146,7 @@ const outlet={
     {
       if(actualOutlet!='')
       {
-        if(!this.checkIfIdenticalProductExistInDatabase(actualOutlet, product))
+        if(!this.checkIfIdenticalProductExistInDatabase(actualOutlet, this.convert(product)))
         {
           Outlet_products.push(this.convert(product))
         }
@@ -150,17 +162,19 @@ const outlet={
       product.found_data=await this.getOutletProductFoundData(product)
       await this.create(product)
     }
+
+    console.log('Wszystkie produkty zostały dodane do bazy danych outletu.')
   },
 
   checkIfIdenticalProductExistInDatabase(database_products, productToCheck)
   {
-    let auctionsId=[]
+    let ordersId=[]
     for(let product of database_products)
     {
-      auctionsId.push(product.auction_id)
+      ordersId.push(product.order_id)
     }
 
-    return auctionsId.includes(productToCheck.auction_id)
+    return ordersId.includes(productToCheck.order_id)
   },
 
   async getOutletProductFoundData(Outlet_product)
@@ -202,8 +216,8 @@ const outlet={
 
     async getProfitFromOutletWithCancellations(year, month, day)
     {
+        orders.matchCancellations(year, month, day);
         let todayOrders=await orders.loadOrdersFromDatabase(year, month, day);
-        orders.matchCancellations(todayOrders);
         let profit=0;
 
         for(let order of todayOrders)
@@ -248,20 +262,34 @@ const outlet={
 
     async removeProductFromDatabase(database_id)
     {
-      Outlet.find({
+      await Outlet.findOneAndDelete({
         _id: database_id
-      }).remove().exec()
+      });
     },
 
     async actualizeQuantityInDatabaseProduct(database_id, newquantity)
     {
-      await Person.replaceOne({ database_id }, { quantity: newquantity });
+      await Outlet.findOneAndUpdate({ database_id:database_id }, { quantity: newquantity });
     },  
+
+    async matchAddedIntoSystem(database_id)
+    {
+      await Outlet.findOneAndUpdate({ database_id:database_id }, { added_into_system: true });
+    },
 
     async addOutletToSystem()
     {
-      const actualOutlet=this.loadOutletFromDatabase()
+      const actualOutlet=await this.loadOutletFromDatabase()
       
+      for(let outletproduct of actualOutlet)
+      {
+        if(outletproduct.added_into_system!=true)
+        {
+          console.log(await baselinker.addProductToSystem(outletproduct))
+          await this.matchAddedIntoSystem(outletproduct.order_id)
+          console.log(`Changes in product ${outletproduct.order_id} was matched into system`)
+        }
+      }
     },  
 
     async removeSold()
@@ -271,7 +299,7 @@ const outlet={
       let month=today.getMonth()+1
       let year=today.getFullYear()
 
-      const newOrders = await orders.loadOrdersFromDatabase()
+      const newOrders = await orders.loadOrdersFromDatabase(year, month, day)
       const actualOutlet = await this.loadOutletFromDatabase()
 
       for(let order of newOrders)
@@ -280,13 +308,19 @@ const outlet={
         {
           for(let outletproduct of actualOutlet)
           {
-            if(outletproduct.quantity > product.quantity)
+            if(outletproduct.auction_id == product.auction_id)
             {
-              let newquantity = outletproduct.quantity - product.quantity
-              actualizeQuantityInDatabaseProduct(outletproduct_id, newquantity)
-            }else
-            {
-              removeProductFromDatabase(outletproduct_id)
+              if(outletproduct.quantity > product.quantity)
+              {
+                let newquantity = outletproduct.quantity - product.quantity
+                actualizeQuantityInDatabaseProduct(outletproduct._id, newquantity)
+
+                return `Zaktualizowano stan produktu ${outletproduct._id} na ${newquantity}, przez zamówienie ${product.order_id}`
+              }else
+              {
+                removeProductFromDatabase(outletproduct_id)
+                return `Usunięto z bazy danych outletu produkt ${outletproduct.ean}, przez zamówienie ${product.order_id}`
+              }
             }
           }
         }
@@ -297,6 +331,7 @@ const outlet={
     {
       await this.loadOutlet(year, month, day)
       await this.removeSold()
+      await this.addOutletToSystem()
     }
 
 }

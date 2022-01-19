@@ -1,5 +1,4 @@
 const axios = require('axios')
-const outlet = require('./outlet')
 require('dotenv').config({path:'../.env'})
 
 const token = process.env.BL_TOKEN || ''
@@ -107,7 +106,7 @@ const baselinker = {
       
       return [load.data.products[0].product_id]
     } catch(err) {
-        console.log(err);
+        console.log(err.response);
         return false
     }
   },
@@ -138,16 +137,17 @@ const baselinker = {
       return products[0]
 
     } catch(err) {
-      console.log(err);
+      console.log(err.response);
       return false
     }
   },
 
-  async getCancellations()
+  async getCancellations(data)
   {
+
     const info = new URLSearchParams({
         'method':'getOrders',
-        'parameters':`{"status_id":+${289429}}`
+        'parameters':`{"status_id":+${289429},"date_from":+${data}}`
     }).toString().replaceAll('%2B','+')
 
     try{
@@ -428,7 +428,7 @@ const baselinker = {
 
     if(load.data.status=='SUCCESS')
     {
-      return load.data//`Product was added to catalogue Domyślny on id ${load.data.product_id}. \n${outletproduct}`
+      return `Product was added to catalogue Domyślny on id ${load.data.product_id}.`
     }
     else
     {
@@ -443,17 +443,24 @@ const baselinker = {
 
   async addProductToSystem(product)
   {
-    if(this.checkIfProductIsInDomyslny(product.ean)!=false)
-    {
+    const checkFreestore =await this.checkIfProductIsInFreestore(product.ean)
+    const checkDomyslny =await this.checkIfProductIsInDomyslny(product.ean)
 
+    if(checkDomyslny!=false)
+    {
+      let newquantity=checkDomyslny.stock.bl_555 + product.quantity
+      this.changeProductQuantityForDomyslny(checkDomyslny.product_id, newquantity)
+      return `Produktowi ${checkDomyslny.product_id} w katalogu DOMYŚLNY zmieniono stan na ${newquantity} pod wpływem anulacji.`
     }
-    else if(this.checkIfProductIsInFreestore(product.ean)!=false)
+    else if(checkFreestore!=false)
     {
-
+      let newquantity=checkFreestore.stock.bl_555 + product.quantity
+      this.changeProductQuantityForFreestore(checkFreestore.product_id, newquantity)
+      return `Produktowi ${checkDomyslny.product_id} w katalogu FREESTORE zmieniono stan na ${newquantity} pod wpływem anulacji.`
     }
     else 
     {
-
+      return this.addNewProduct(product)
     }
   }
 }

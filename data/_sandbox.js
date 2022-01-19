@@ -11,8 +11,6 @@ const { getNotFullCancellations } = require('./baselinker');
 //const wholesalers = require('./prices/wholesalers')
 //const daily_raport=require('./prices/daily_raport')
 
-//orders.updateFromData(2022 , 1, 17)
-
 const testingAll = async () => {
   //const storageName = "B2BTRADE"
   const start = new Date()
@@ -63,7 +61,7 @@ const test = async () => {
 
 const outletTest = async () => {
 
-  await outlet.loadOutlet(2022, 1, 6)
+  //await outlet.loadOutlet(2022, 1, 17)
   //await orders.loadOrdersFromDatabase(2022, 1, 17)
   //console.log(await baselinker.getProductId)
   //console.log(baselinker.convertData)
@@ -75,13 +73,16 @@ const outletTest = async () => {
   //console.log(await outlets[0].found_data)
   //console.log(await baselinker.changeProductQuantityForDomyslny('1029628553', 3))
 
+  //console.log(await baselinker.checkIfProductIsInDomyslny(8809716070657, 'OUTLET'))
   //const actualOutletProduct=await outlet.loadOutletFromDatabase()
 
   //console.log(actualOutletProduct)
+
+  await outlet.addOutletToSystem()
 
   //console.log(await baselinker.addNewProduct(actualOutletProduct))
 
 }
 
-
+//orders.updateFromData(2022 , 1, 17)
 outletTest()

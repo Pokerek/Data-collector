@@ -21,6 +21,7 @@ const orderSchema = new mongoose.Schema({
 			sku: String,
 			ean: String,
       storage_id: Number,
+      storage: String,
 			storage_name: String,
       price: {
         buy: {
@@ -36,7 +37,9 @@ const orderSchema = new mongoose.Schema({
 			quantity: Number,
       profit: Number,
 			location: String,
-			auction_id: String,
+			order_id: String,
+      auction_id: String,
+      source_id:String
   }]
 })
 
@@ -56,6 +59,7 @@ const orders = {
         sku: product.sku,
         ean: product.ean,
         storage_id: product.storage_id,
+        storage: product.storage,
         storage_name: '',
         price: {
           buy: {
@@ -71,8 +75,9 @@ const orders = {
         quantity: product.quantity,
         profit: 0,
         location: product.location,
+        order_id: order.order_id,
         auction_id: product.auction_id,
-        order_id: order.order_id
+        source_id: order.order_source_id
       })
     })
     return {
@@ -159,22 +164,26 @@ const orders = {
     })
   },
 
-  async matchCancellations(orders)
+  async matchCancellations(year, month, day)
   {
-    const cancellationsId=await baselinker.getCancellations();
-
-    for(let order of orders)
+    const data = baselinker.convertData(year, month, day)
+    const cancellationsId=await baselinker.getCancellations(data);
+    const database_orders=await this.loadOrdersFromDatabase(year, month, day)
+    for(let order of database_orders)
     {
-      if(cancellationsId.includes(orders.order_id))
+      if(cancellationsId.includes(order.order_id))
       {
-        order.cancelled=true;
+
+        await Order.findOneAndUpdate({ _id:order._id}, { cancelled: true });
 
         if(order.admin_comments.includes('zwrot z dostawą'))
         {
-          order.delivery_price_returned=true;
+          await Order.findOneAndUpdate({ _id }, { delivery_price_returned: true });
         }
       }
     }
+
+    return orders
   },
 
   async loadOrdersFromDatabase(year, month, day)
@@ -219,8 +228,8 @@ const orders = {
 
     async getProfitFromOrdersWithCancellations(year, month, day)
     {
-        const orders=await this.loadOrdersFromDatabase(year, month, day);
-        this.matchCancellations(orders);
+        this.matchCancellations(year, month, day);
+        let orders=await this.loadOrdersFromDatabase(year, month, day);
         let profit=0;
 
         for(let order of orders)
@@ -257,8 +266,9 @@ const orders = {
     
     async getLossFromCancellations(year, month, day)
     {
+      this.matchCancellations(year, month, day);
       const orders=await orders.loadOrdersFromDatabase(year, month, day);
-      this.matchCancellations(orders);
+      
       let loss=0;
 
       for(let order of orders)

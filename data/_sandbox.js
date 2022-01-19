@@ -2,13 +2,16 @@ const baselinker = require('./baselinker');
 //const products = require('./products');
 //const statuses = require('./statuses')
 //const storages = require('./storages')
-//const orders = require('./orders');
+const outlet = require('./outlet')
+const orders = require('./orders');
 const examples = require('./examples')
-const prices = require('./prices/prices')
+const prices = require('./prices/prices');
+const { TELFORCEONE } = require('./prices/wholesalers');
+const { getNotFullCancellations } = require('./baselinker');
 //const wholesalers = require('./prices/wholesalers')
 //const daily_raport=require('./prices/daily_raport')
 
-//orders.updateFromData(2022 , 1, 6)
+//orders.updateFromData(2022 , 1, 17)
 
 const testingAll = async () => {
   //const storageName = "B2BTRADE"
@@ -53,6 +56,32 @@ const test = async () => {
   console.log(data)
 }
 
-const profit = prices.calculateProductProfit({buy: {netto: 11.37, brutto: 13.99}, sell: {netto: 16.26, brutto: 20.99}},23)
 
-console.log(profit)
+//const profit = prices.calculateProductProfit({buy: {netto: 11.37, brutto: 13.99}, sell: {netto: 16.26, brutto: 20.99}},23)
+
+//testingSingle('LAMEX')
+
+const outletTest = async () => {
+
+  await outlet.loadOutlet(2022, 1, 6)
+  //await orders.loadOrdersFromDatabase(2022, 1, 17)
+  //console.log(await baselinker.getProductId)
+  //console.log(baselinker.convertData)
+  //console.log(await baselinker.getCancellations())
+  //const product_id = await baselinker.getProductId('shop_24301','6920680873173')
+  //const product_data= await baselinker.getProductData('shop_24301', product_id)
+  //console.log(product_data)
+  //const outlets=await outlet.loadOutletFromDatabase()
+  //console.log(await outlets[0].found_data)
+  //console.log(await baselinker.changeProductQuantityForDomyslny('1029628553', 3))
+
+  //const actualOutletProduct=await outlet.loadOutletFromDatabase()
+
+  //console.log(actualOutletProduct)
+
+  //console.log(await baselinker.addNewProduct(actualOutletProduct))
+
+}
+
+
+outletTest()

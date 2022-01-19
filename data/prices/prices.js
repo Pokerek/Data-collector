@@ -3,6 +3,11 @@ const puppeteer = require('puppeteer')
 
 const prices = {
     async getPrices (products, storageName) {
+
+        if(!wholesalers.hasOwnProperty(storageName))
+        {
+            return false;
+        }
         const storage = wholesalers[storageName]
 
         const browser = await puppeteer.launch({
@@ -23,7 +28,7 @@ const prices = {
                 before)
             if(loaded) { //Banner loaded
                 await page.click(before)
-                await page.waitForTimeout(500)
+                await page.waitForTimeout(1000)
             }
         }
         //Login

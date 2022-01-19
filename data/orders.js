@@ -3,6 +3,7 @@ const baselinker = require('./baselinker')
 const products = require('./products')
 const storages = require('./storages')
 const prices = require('./prices/prices')
+const wholesalers = require('./prices/wholesalers')
 
 const orderSchema = new mongoose.Schema({
   order_id: Number,
@@ -71,6 +72,7 @@ const orders = {
         profit: 0,
         location: product.location,
         auction_id: product.auction_id,
+        order_id: order.order_id
       })
     })
     return {
@@ -94,6 +96,7 @@ const orders = {
     const order = await Order.find({order_id: id})
     return order[0]
   },  
+  
   async updateFromData (year, month, day, time = 86400) {
     const startDate = baselinker.convertData(year, month, day),
           endDate = startDate + time,
@@ -132,12 +135,25 @@ const orders = {
         data = await this.load(nextDate)
       }
     } while (nextDate < endDate)
+
+    let counter = 1
     for(const storage in productsBuffor) {
-      //productsBuffor[storage] = await prices.getPrices(productsBuffor[storage],storage) //Prices load from storages
+      console.log('Loading buy prices from ' + storage + ' (' + counter + ' of '+ Object.keys(productsBuffor).length +')')
+      if(wholesalers.hasOwnProperty(storage))
+      {
+        //productsBuffor[storage] = await prices.getPrices(productsBuffor[storage],storage) //Prices load from storages
+      }
+      else
+      {
+        console.log(storage + ' is not added warehouse, prices will be automatically changed to the value of 0.')
+      }
+      
       for(const product of productsBuffor[storage]) {
         products.update(product)
       }
+      counter++;
     }
+
     ordersBuffor.forEach((order) => {
       this.create(order) // Create new order
     })
@@ -145,8 +161,7 @@ const orders = {
 
   async matchCancellations(orders)
   {
-    const data = baselinker.convertdata(year, month, day)
-    const cancellationsId=await baselinker.getCancellations(data);
+    const cancellationsId=await baselinker.getCancellations();
 
     for(let order of orders)
     {
@@ -163,42 +178,43 @@ const orders = {
   },
 
   async loadOrdersFromDatabase(year, month, day)
-    {
-      const startDate = baselinker.convertData(year, month, day),
-        endDate = startDate + 86400
-      let orders=await Order.find(function (err, orders) {
-          if (err) return 'error';
-          else return orders
-      }).clone().catch(function(err){return err})
+  {
+    const startDate = baselinker.convertData(year, month, day, 0, 0, 0),
+      endDate = startDate + 86400
       
-      let ordersFilteredByDate=[]
+    let orders=await Order.find(function (err, orders) {
+        if (err) return false;
+        else return orders
+    }).clone().catch(function(err){return err})
+    
+    let ordersFilteredByDate=[]
 
-      for(let order of orders)
+    for(let order of orders)
+    {
+      if(order.date_confirmed>startDate && order.date_confirmed<endDate)
       {
-        if(order.date_confirmed>startDate && order.date_confirmed<endDate)
-        {
-          ordersFilteredByDate.push(order)
-        }
+        ordersFilteredByDate.push(order)
       }
-      return ordersFilteredByDate;
+    }
+    return ordersFilteredByDate;
     },
 
     async getProfitFromOrders(year, month, day)
     {
-        const orders=await this.loadOrdersFromDatabase(year, month, day);
-        let profit=0;
+      let orders=await this.loadOrdersFromDatabase(year, month, day);
+      let profit=0;
 
-        for(let order of orders)
-        {
-              for(let product of order.products)
-              {
-                  profit+=product.profit;
-              }
-              
-              profit+=order.delivery_price;
-        }
+      for(let order of orders)
+      {
+            for(let product of order.products)
+            {
+                profit+=product.profit;
+            }
+            
+            profit+=order.delivery_price;
+      }
 
-        return profit;
+      return profit;
     },
 
     async getProfitFromOrdersWithCancellations(year, month, day)
@@ -238,75 +254,10 @@ const orders = {
 
         return profit;
     },
-
-    async getProfitFromOutlet(year, month, day)
-    {
-        const orders=await this.loadOrdersFromDatabase(year, month, day);
-        let profit=0;
-
-        for(let order of orders)
-        {
-            for(let product of order.products)
-            {
-                if(product.location='')
-                {
-                    profit+=product.profit;
-                }
-            }
-        }
-
-        return profit;
-    },
-
-
-    async getProfitFromOutletWithCancellations(year, month, day)
-    {
-        const orders=await this.loadOrdersFromDatabase(year, month, day);
-        let profit=0;
-
-        for(let order of orders)
-        {
-            for(let product of order.products)
-            {
-                if(product.location='')
-                {
-                    profit+=product.profit;
-                }
-            }
-        }
-
-        for(let order of orders)
-        {
-            if(!order.cancelled)
-            {
-              for(let product of order.products)
-              {
-                  if(product.location='')
-                  {
-                      profit+=product.profit;
-                  }
-              }
-              
-              profit+=order.delivery_price
-            }
-            else
-            {
-              if(order.delivery_price_returned)
-              {
-                profit-=order.delivery_price
-              }
-              else
-              {
-                profit+=order.delivery_price
-              }
-            }
-        }
-        return profit;
-    },
-
+    
     async getLossFromCancellations(year, month, day)
     {
-      const orders=await this.loadOrdersFromDatabase(year, month, day);
+      const orders=await orders.loadOrdersFromDatabase(year, month, day);
       this.matchCancellations(orders);
       let loss=0;
 

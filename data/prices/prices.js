@@ -1,19 +1,10 @@
 const wholesalers = require('./wholesalers')
 const puppeteer = require('puppeteer')
+const missedList = require('../products/missedList')
 
 const prices = {
-    async getPrices (products, storageName) {
-        const storage = wholesalers[storageName]
-
-        const browser = await puppeteer.launch({
-            headless: false
-        })
-
-        const page = await browser.newPage()
-
-        await page.setViewport({ width: 1600, height: 600})
+    async login(storage,page) {
         await page.goto(storage.urls.login, {waitUntil: 'networkidle2'});
-
         //Before alert
         if(storage.alerts.before) {
             const before = storage.alerts.before
@@ -46,21 +37,24 @@ const prices = {
 
         //After alert
         if(storage.alerts.after) {
-            const after = storage.alerts.after
-            await Promise.race([
-                page.waitForSelector(after),
-                page.waitForTimeout(1500)
-            ]) 
-            await page.click(after)
-            await page.waitForTimeout(500)
+            for(let i = 0; i < storage.alerts.after.length; i++) {
+                const selector = storage.alerts.after[i]
+                await Promise.race([
+                    page.waitForSelector(selector),
+                    page.waitForTimeout(1500)
+                ]) 
+                await page.click(selector)
+                await page.waitForTimeout(500)
+            }
         }
         if(storage.options.special === 'APTEL') {
             await page.evaluate(() => {
                 javascript:__doPostBack('ctl00','cookie_info_hide')
             })
             await page.waitForNavigation()
-        }
-        
+        } 
+    },
+    async search(storage,page,products) {
         // Wait for search reload
         if(storage.options.searchWait) {
             await page.waitForTimeout(500)
@@ -70,6 +64,7 @@ const prices = {
         for(let i = 0; i < products.length; i++) // For each product
         {
             const localProduct = products[i]; // Copy product
+            let notFound = true
             for(let type of storage.typeSearch) { // Search for type
                 await page.evaluate((selector) => { // Clear search field
                     document.querySelector(selector).value = ''
@@ -103,18 +98,32 @@ const prices = {
                     await page.click('.box-body > table > tbody > tr > td.align-middle.text-center > a > i')
                     await page.waitForSelector(storage.selectors.price)
                 }
-                const htmlText = await page.evaluate((selector) => {
-                    return document.querySelector(selector) ? document.querySelector(selector).innerText : false}, 
-                    storage.selectors.price)
+                const htmlText = await page.evaluate((priceSelector,nameSelector,nameProduct) => {
+                        if(1 /*document.querySelector(nameSelector).innerText.slice(0,10) === nameProduct.slice(0,10)*/ ) {
+                            return document.querySelector(priceSelector) ? document.querySelector(priceSelector).innerText : false
+                        } else {
+                            return false
+                        }
+                    }, 
+                    storage.selectors.price,storage.selectors.name,localProduct.name)
                 if(htmlText) {
-                    localProduct.price.buy = await storage.getStoragePrice(localProduct.price.buy,htmlText,localProduct.tax_rate) // Price from storage
+                    localProduct.price.buy = this.getStoragePrice(localProduct.price.buy,htmlText,localProduct.tax_rate,storage.priceOptions) // Price from storage
+                    notFound = false
                     break
                 }
                 
             }
-            products[i] = await this.update(localProduct) // Profit update
-        }
-
+            if(notFound) {
+                missedList.add(localProduct)
+            } else {
+                products[i] = await this.update(localProduct) // Profit update
+            }
+        }    
+    },
+    async addProduct() {
+        //Future
+    },
+    async logout(storage,page) {
         //Logout
         if(storage.urls.logout) { //URL
             await page.goto(storage.urls.logout);
@@ -128,10 +137,37 @@ const prices = {
                 await page.click(storage.selectors.preLogout)
                 await page.waitForTimeout(200)
             }
-            await page.click(storage.selectors.logout);
-        }
+            await page.evaluate((selector) => {
+                document.querySelector(selector).click()}, 
+                storage.selectors.logout)
+        } 
+    },
+    async getPrices(products, storageName,hidden = false ) {
+        const storage = wholesalers[storageName]
         
-        await browser.close();
+        const browser = await puppeteer.launch({
+            headless: hidden,
+            defaultViewport: {
+                width: 1200,
+                height: 600
+            }
+        })
+        
+        const page = await browser.newPage()
+        if(storage) {
+            try {
+                await this.login(storage,page)
+                await this.search(storage,page,products)
+                await this.logout(storage,page)
+                console.log(`${storageName} - complete`) 
+            } catch (error) {
+                browser.close()
+                console.error(`${storageName} - error: ${error}`)
+            }
+        } else {
+            console.log(`Not found storage ${storageName}`)
+        }
+        browser.close()
         return products;
     },
     getProfit(productPrice) {
@@ -157,6 +193,25 @@ const prices = {
     },
     bruttoPrice(netto,tax, place = 2) {
         return (netto * ( 1 + tax / 100)).toFixed(place) * 1
+    },
+    getStoragePrice(productPrice, priceHTML, tax, options){
+        switch (options.position) {
+            case 'left':
+                priceHTML = priceHTML.slice(priceHTML.indexOf(options.word) + 1)
+                break;
+            case 'right':
+                priceHTML = priceHTML.slice(0,priceHTML.indexOf(options.word)-1)
+                break;
+        }
+        const price = priceHTML.replaceAll(',','.') * 1
+        if (options.netto) {
+            productPrice.netto = price || 0
+            productPrice.brutto = this.bruttoPrice(price,tax) || 0
+        } else {
+            productPrice.netto = this.nettoPrice(price,tax) || 0
+            productPrice.brutto =  price || 0
+        }
+        return productPrice
     }
 }
 

@@ -1,8 +1,9 @@
-const mongoose = require('./connect')
+const mongoose = require('./database/mongoose')
 const baselinker = require('./baselinker')
-const products = require('./products')
+const products = require('./products/products')
 const storages = require('./storages')
 const prices = require('./prices/prices')
+const missedList = require('./products/missedList')
 
 const orderSchema = new mongoose.Schema({
   order_id: Number,
@@ -99,6 +100,7 @@ const orders = {
           endDate = startDate + time,
           ordersBuffor = []
     let productsBuffor = []
+    let storageCount = 0
     //First init
     let data = await this.load(startDate)
     let nextDate = startDate
@@ -114,16 +116,23 @@ const orders = {
             for (const index in convertedOrder.products) {
               const product = convertedOrder.products[index]
               const storageName = convertedOrder.products[index].storage_name = await storages.getName(product.storage_id)
-              if(productsBuffor[storageName]) {
+              if (products.testOUTLET(product.sku)) { // grab outlet
+                if (!productsBuffor['OUTLET']) {
+                  productsBuffor['OUTLET'] = []
+                  storageCount++
+                }
+                productsBuffor['OUTLET'].push(product)
+              } else if(productsBuffor[storageName]) { // add product to array o storage
                 if(products.testEAN(product.ean,productsBuffor[storageName]) || products.testSKU(product.sku,productsBuffor[storageName])) { //Test ean or sku
                   productsBuffor[storageName].push(product)
-                }  
-              } else {
+                }
+              } else { // create array for storage
                 productsBuffor[storageName] = []
                 productsBuffor[storageName].push(product)
+                storageCount++
               }
-              ordersBuffor.push(convertedOrder)
             }
+            ordersBuffor.push(convertedOrder)
           }
         }
       }
@@ -132,17 +141,28 @@ const orders = {
         data = await this.load(nextDate)
       }
     } while (nextDate < endDate)
+
+    let count = 1
     for(const storage in productsBuffor) {
-      //productsBuffor[storage] = await prices.getPrices(productsBuffor[storage],storage) //Prices load from storages
-      for(const product of productsBuffor[storage]) {
-        products.update(product)
+      console.log(`Progress ${count} / ${storageCount} > ${storage} <`)
+      if(storage === "OUTLET") {
+        //loop for outlet
+      } else {
+        //if(storage !== "VIVAB2B") {
+        if(1) {
+          productsBuffor[storage] = await prices.getPrices(productsBuffor[storage],storage,true) //Prices load from storages
+        }
+        for(const product of productsBuffor[storage]) {
+          products.update(product) 
+        }
       }
+      count++
     }
+    missedList.save() // Generate list for not found products
     ordersBuffor.forEach((order) => {
       this.create(order) // Create new order
     })
   },
-
   async matchCancellations(orders)
   {
     const data = baselinker.convertdata(year, month, day)

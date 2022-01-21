@@ -32,12 +32,11 @@ const wholesalers = {
             searchWait: false
         },
         typeSearch: ['sku','ean','name'],
-        
-        async getStoragePrice(productPrice, priceHTML, tax){
-            const priceNetto = priceHTML.slice(0,priceHTML.indexOf('zł')-1).replaceAll(',','.') * 1
-            productPrice.netto = priceNetto
-            productPrice.brutto = wholesalers.bruttoPrice(priceNetto,tax) 
-            return productPrice
+        priceOptions: {
+            netto: true,
+            position: 'right',
+            word: 'zł'
+
         }
     },
     PARTNERTELE:{
@@ -72,12 +71,9 @@ const wholesalers = {
             special: false
         },
         typeSearch: ['ean','sku','name'],
-
-        async getStoragePrice(productPrice, priceHTML,tax){
-            const priceNetto = priceHTML * 1
-            productPrice.netto = priceNetto
-            productPrice.brutto = wholesalers.bruttoPrice(priceNetto,tax)
-            return productPrice
+        priceOptions: {
+            netto: true,
+            position: false
         }
     },
     EPSTRYK:{
@@ -112,12 +108,11 @@ const wholesalers = {
             special: false
         },
         typeSearch: ['sku','ean','name'],
+        priceOptions: {
+            netto: false,
+            position: 'right',
+            word: 'zł'
 
-        async getStoragePrice(productPrice, priceHTML,tax){
-            const priceBrutto = priceHTML.slice(0,priceHTML.indexOf('zł') - 1).replaceAll(',','.') * 1
-            productPrice.netto = wholesalers.nettoPrice(priceBrutto,tax)
-            productPrice.brutto = priceBrutto
-            return productPrice
         }
     },
     DMTRADE:{
@@ -152,12 +147,9 @@ const wholesalers = {
             special: false
         },
         typeSearch: ['sku','ean','name'],
-
-        async getStoragePrice(productPrice, priceHTML,tax){
-            const priceBrutto = priceHTML.replaceAll(',','.') * 1
-            productPrice.netto = wholesalers.nettoPrice(priceBrutto,tax)
-            productPrice.brutto = priceBrutto
-            return productPrice
+        priceOptions: {
+            netto: false,
+            position: false
         }
     },
     GADGETMASTER:{
@@ -192,12 +184,10 @@ const wholesalers = {
             searchWait: false
         },
         typeSearch: ['sku','ean','name'],
-
-        async getStoragePrice(productPrice, priceHTML,tax){
-            const priceNetto = priceHTML.slice(0,priceHTML.indexOf('zł')).replaceAll(',','.') * 1
-            productPrice.netto = priceNetto
-            productPrice.brutto = wholesalers.bruttoPrice(priceNetto,tax)
-            return productPrice
+        priceOptions: {
+            netto: true,
+            position: 'right',
+            word: 'zł'
         }
     },
     TAYMA:{
@@ -232,12 +222,10 @@ const wholesalers = {
             special: false
         },
         typeSearch: ['ean','sku','name'],
-
-        async getStoragePrice(productPrice, priceHTML,tax){
-            const priceNetto = priceHTML.slice(0,priceHTML.indexOf('zł')).replaceAll(',','.') * 1
-            productPrice.netto = priceNetto
-            productPrice.brutto = wholesalers.bruttoPrice(priceNetto,tax)
-            return productPrice
+        priceOptions: {
+            netto: true,
+            position: 'right',
+            word: 'zł'
         }
     },
     B2BTRADE:{
@@ -273,12 +261,10 @@ const wholesalers = {
             special: false
         },
         typeSearch: ['ean','sku','name'],
-
-        async getStoragePrice(productPrice, priceHTML,tax){
-            const priceNetto = priceHTML.slice(priceHTML.indexOf(' ') + 1).replaceAll(',','.') * 1
-            productPrice.netto = priceNetto
-            productPrice.brutto = wholesalers.bruttoPrice(priceNetto,tax)
-            return productPrice
+        priceOptions: {
+            netto: true,
+            position: 'left',
+            word: ' '
         }
     },
     ACTION:{
@@ -292,7 +278,7 @@ const wholesalers = {
         },
         alerts:{
             before: false,
-            after: '#unpaid-invoices-modal i'
+            after: ['#unpaid-invoices-modal i']
         },
         selectors:{
             name:'.description a.product-cart-trigger',
@@ -312,14 +298,10 @@ const wholesalers = {
             special: false
         },
         typeSearch: ['ean','sku','name'],
-
-        async getStoragePrice(productPrice, priceHTML,tax){
-            if(priceHTML) {
-                const priceNetto = priceHTML.slice(0,priceHTML.indexOf('PLN')).replaceAll(',','.') * 1
-                productPrice.netto = priceNetto
-                productPrice.brutto = wholesalers.bruttoPrice(priceNetto,tax)
-            }
-            return productPrice
+        priceOptions: {
+            netto: true,
+            position: 'right',
+            word: 'PLN'
         }
     },
     ABONLINE:{
@@ -354,14 +336,9 @@ const wholesalers = {
             special: false
         },
         typeSearch: ['ean','sku','name'],
-
-        async getStoragePrice(productPrice, priceHTML,tax){
-            if(priceHTML) {
-                const priceNetto = priceHTML * 1
-                productPrice.netto = priceNetto
-                productPrice.brutto = wholesalers.bruttoPrice(priceNetto,tax)
-            }
-            return productPrice
+        priceOptions: {
+            netto: true,
+            position: false
         }
     },
     BOSSOFTOYS:{
@@ -375,7 +352,7 @@ const wholesalers = {
         },
         alerts:{
             before: false,
-            after: 'a[title="cennik"]'
+            after: ['a[title="cennik"]']
         },
         selectors:{
             name:'#grid table > tbody > tr:nth-child(1) > td:nth-child(3) > a',
@@ -395,14 +372,10 @@ const wholesalers = {
             special: false
         },
         typeSearch: ['sku','ean','name'],
-        
-        async getStoragePrice(productPrice, priceHTML,tax){
-            if(priceHTML) {
-                const priceNetto = priceHTML.slice(0,priceHTML.indexOf('PLN')) * 1
-                productPrice.netto = priceNetto
-                productPrice.brutto = wholesalers.bruttoPrice(priceNetto,tax)
-            }
-            return productPrice
+        priceOptions: {
+            netto: true,
+            position: 'right',
+            word: 'PLN'
         }
     },
     VIVAB2B:{
@@ -436,14 +409,10 @@ const wholesalers = {
             special: false
         },
         typeSearch: ['sku','ean','name'],
-        
-        async getStoragePrice(productPrice, priceHTML,tax){
-            if(priceHTML) {
-                const priceBrutto = priceHTML.slice(0,priceHTML.indexOf('zł')) * 1
-                productPrice.netto = wholesalers.nettoPrice(priceBrutto,tax)
-                productPrice.brutto = priceBrutto
-            }
-            return productPrice
+        priceOptions: {
+            netto: true,
+            position: 'right',
+            word: 'zł'
         }
     },
 
@@ -478,14 +447,10 @@ const wholesalers = {
             special: false
         },
         typeSearch: ['sku','ean','name'],
-        
-        async getStoragePrice(productPrice, priceHTML,tax){
-            if(priceHTML) {
-                const priceNetto = priceHTML.slice(0,priceHTML.indexOf('PLN')).replaceAll(',','.') * 1
-                productPrice.netto = priceNetto
-                productPrice.brutto = wholesalers.bruttoPrice(priceNetto,tax)
-            }
-            return productPrice
+        priceOptions: {
+            netto: true,
+            position: 'right',
+            word: 'PLN'
         }
     },
     
@@ -521,14 +486,10 @@ const wholesalers = {
             special: false
         },
         typeSearch: ['sku','ean','name'],
-        
-        async getStoragePrice(productPrice, priceHTML,tax){
-            if(priceHTML) {
-                const priceBrutto = priceHTML.slice(0,priceHTML.indexOf('PLN')).replaceAll(',','.') * 1
-                productPrice.netto = wholesalers.nettoPrice(priceBrutto,tax)
-                productPrice.brutto = priceBrutto
-            }
-            return productPrice
+        priceOptions: {
+            netto: false,
+            position: 'right',
+            word: 'PLN'
         }
     },
 
@@ -563,14 +524,10 @@ const wholesalers = {
             special: false
         },
         typeSearch: ['sku','ean','name'],
-        
-        async getStoragePrice(productPrice, priceHTML,tax){
-            if(priceHTML) {
-                const priceNetto = priceHTML.slice(0,priceHTML.indexOf('zł')) * 1
-                productPrice.netto = priceNetto
-                productPrice.brutto = wholesalers.bruttoPrice(priceNetto,tax)
-            }
-            return productPrice
+        priceOptions: {
+            netto: true,
+            position: 'right',
+            word: 'zł'
         }
     },
 
@@ -589,7 +546,7 @@ const wholesalers = {
         },
         selectors:{
             name:'div.w-100.mb-2 > a > strong',
-            notFound: 'div.alert.alert-info',
+            notFound: '.product-list-container > .alert-info',
             login:'#login_email',
             password:'#login_password',
             price:'div.price-gross > span.price',
@@ -605,14 +562,10 @@ const wholesalers = {
             special: false
         },
         typeSearch: ['sku','ean','name'],
-        
-        async getStoragePrice(productPrice, priceHTML,tax){
-            if(priceHTML) {
-                const priceBrutto = priceHTML.slice(0,priceHTML.indexOf('zł')).replaceAll(',','.') * 1
-                productPrice.netto = wholesalers.nettoPrice(priceBrutto,tax)
-                productPrice.brutto = priceBrutto
-            }
-            return productPrice
+        priceOptions: {
+            netto: false,
+            position: 'right',
+            word: 'zł'
         }
     },
     
@@ -639,7 +592,7 @@ const wholesalers = {
             preLogin: false,
             search:'input.search-ui',
             preLogout: false,
-            logout:'button.va-unset-ui.btn-pure-ui.sign-out-lq.header-item-label-ui'
+            logout:'.header-ui .ti-power-off'
         },
         options: {
             table: false,
@@ -648,14 +601,10 @@ const wholesalers = {
             special: false
         },
         typeSearch: ['sku','ean','name'],
-        
-        async getStoragePrice(productPrice, priceHTML,tax){
-            if(priceHTML) {
-                const priceBrutto = priceHTML.slice(0,priceHTML.indexOf('PLN')).replaceAll(',','.') * 1
-                productPrice.netto = wholesalers.nettoPrice(priceBrutto,tax)
-                productPrice.brutto = priceBrutto
-            }
-            return productPrice
+        priceOptions: {
+            netto: false,
+            position: 'right',
+            word: 'PLN'
         }
     },
 
@@ -691,14 +640,10 @@ const wholesalers = {
             special: false
         },
         typeSearch: ['sku','ean','name'],
-
-        async getStoragePrice(productPrice, priceHTML,tax){
-            if(priceHTML) {
-                const priceBrutto = priceHTML.slice(0,priceHTML.indexOf('zł')).replaceAll(',','.') * 1
-                productPrice.netto = wholesalers.nettoPrice(priceBrutto,tax)
-                productPrice.brutto = priceBrutto
-            }
-            return productPrice
+        priceOptions: {
+            netto: false,
+            position: 'right',
+            word: 'zł'
         }
     },
     
@@ -737,15 +682,11 @@ const wholesalers = {
             search:'http://aptel.pl/ProduktyWyszukiwanie.aspx?search='
         },
         typeSearch: ['sku','name'],
-    
-        async getStoragePrice(productPrice, priceHTML,tax){
-          if(priceHTML) {
-              const priceNetto = priceHTML.slice(0,priceHTML.indexOf('PLN')).replaceAll(',','.') * 1
-              productPrice.netto = priceNetto
-              productPrice.brutto = wholesalers.nettoPrice(priceNetto,tax)
-          }
-          return productPrice
-        },
+        priceOptions: {
+            netto: true,
+            position: 'right',
+            word: 'PLN'
+        }
     },
 
     IKS2:{
@@ -780,15 +721,11 @@ const wholesalers = {
             special: false
         },
         typeSearch: ['ean','sku','name'],
-    
-        async getStoragePrice(productPrice, priceHTML,tax){
-          if(priceHTML) {
-              const priceNetto = priceHTML.slice(0,priceHTML.indexOf('ZŁ')).replaceAll(',','.') * 1
-              productPrice.netto = priceNetto
-              productPrice.brutto = wholesalers.bruttoPrice(priceNetto,tax)
-          }
-          return productPrice
-        },
+        priceOptions: {
+            netto: true,
+            position: 'right',
+            word: 'ZŁ'
+        }
       },
 
       SONIA:{
@@ -823,15 +760,11 @@ const wholesalers = {
             special: false
         },
         typeSearch: ['ean','sku','name'],
-    
-        async getStoragePrice(productPrice, priceHTML,tax){
-          if(priceHTML) {
-              const priceNetto = priceHTML.slice(0,priceHTML.indexOf('zł')).replaceAll(',','.') * 1
-              productPrice.netto = priceNetto
-              productPrice.brutto = wholesalers.bruttoPrice(priceNetto,tax)
-          }
-          return productPrice
-        },
+        priceOptions: {
+            netto: true,
+            position: 'right',
+            word: 'zł'
+        }
     },
 
     SILIT:{
@@ -866,15 +799,11 @@ const wholesalers = {
             special: false
         },
         typeSearch: ['sku', 'name'],
-    
-        async getStoragePrice(productPrice, priceHTML,tax){
-          if(priceHTML) {
-              const priceNetto = priceHTML.slice(0,priceHTML.indexOf('zł')).replaceAll(',','.') * 1
-              productPrice.netto = priceNetto
-              productPrice.brutto = wholesalers.bruttoPrice(priceNetto,tax)
-          }
-          return productPrice
-        },
+        priceOptions: {
+            netto: true,
+            position: 'right',
+            word: 'zł'
+        }
       },
     
       ORNO:{
@@ -909,15 +838,11 @@ const wholesalers = {
             special: "ORNO"
         },
         typeSearch: ['sku','ean','name'],
-    
-        async getStoragePrice(productPrice, priceHTML,tax){
-            if(priceHTML) {
-                const priceNetto = priceHTML.slice(0,priceHTML.indexOf('zł')) * 1
-                productPrice.netto = priceNetto
-                productPrice.brutto = wholesalers.bruttoPrice(priceNetto,tax)
-            }
-            return productPrice
-          },
+        priceOptions: {
+            netto: true,
+            position: 'right',
+            word: 'zł'
+        }
     },
     
     TOPEX:{
@@ -931,7 +856,7 @@ const wholesalers = {
         },
         alerts: {
             before:'#accept-cookies-checkbox',
-            after:'',
+            after:['.swal2-container .swal2-confirm','.swal2-container .swal2-confirm'],
         },
         selectors:{
             name:'h2.product-name.uppercase.large-12.columns > a', 
@@ -952,15 +877,11 @@ const wholesalers = {
             special: false
         },
         typeSearch: ['sku','ean','name'],
-        
-        async getStoragePrice(productPrice, priceHTML,tax){
-            if(priceHTML) {
-                const priceNetto = priceHTML.slice(0,priceHTML.indexOf('zł')).replaceAll(',','.') * 1
-                productPrice.netto = priceNetto
-                productPrice.brutto = wholesalers.bruttoPrice(priceNetto,tax)
-            }
-            return productPrice
-          },
+        priceOptions: {
+            netto: true,
+            position: 'right',
+            word: 'zł'
+        }
     },
 
     /*OMBERO:{
@@ -1172,12 +1093,6 @@ const wholesalers = {
             return products;
         }
     },*/
-    nettoPrice(brutto,tax, place = 2) {
-        return (brutto / (1 + tax / 100)).toFixed(place) * 1
-    },
-    bruttoPrice(netto,tax, place = 2) {
-        return (netto * ( 1 + tax / 100)).toFixed(place) * 1
-    }
 }
 
 module.exports=wholesalers;

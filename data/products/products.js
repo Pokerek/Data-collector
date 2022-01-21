@@ -1,4 +1,5 @@
-const mongoose = require('./connect')
+const mongoose = require('../database/mongoose')
+const fs = require("fs");
 
 const productSchema = new mongoose.Schema({
   name: String,
@@ -36,8 +37,8 @@ const products = {
       storage_name: product.storage_name,
       price: {
         buy: {
-          netto: [product.price.buy.netto],
-          brutto: [product.price.buy.brutto]
+          netto: [product.price.buy.netto || 0],
+          brutto: [product.price.buy.brutto || 0]
         },
         sell: {
           netto: [product.price.sell.netto],
@@ -50,7 +51,7 @@ const products = {
     }
   },
   async update (product) {
-    const dbProduct =  await this.checkdouble(product)
+    const dbProduct =  await Product.findOne({ean: product.ean, sku: product.sku})
     const localProduct = this.convert(product)
     if (dbProduct) { // Update information
       dbProduct.storage_name = localProduct.storage_name
@@ -65,20 +66,14 @@ const products = {
       await this.create(localProduct) // Create new product
     }
   },
-  async checkdouble (product) {
-    let dbProduct
-    if(this.testEAN(product.ean)) {
-      dbProduct = await Product.find({ean: product.ean})
-    } else if (this.testSKU(product.sku)) {
-      dbProduct = await Product.find({sku: product.sku})      
-    }
-    return dbProduct[0]
-  },
   testEAN (productEAN, array = []) {
     return productEAN !== '' && !array.find(({ean}) => ean === productEAN)
   },
   testSKU (productSKU, array = []) {
-    return (productSKU !== '') && (productSKU.indexOf('OUTLET') === -1) && (productSKU.indexOf('ZWROT') === -1) && (!array.find(({sku}) => sku === productSKU))
+    return (productSKU !== '') && (!array.find(({sku}) => sku === productSKU))
+  },
+  testOUTLET (productSKU) {
+    return (productSKU.indexOf('OUTLET') !== -1) || (productSKU.indexOf('ZWROT') !== -1)
   },
   maxMemory (array, price, max = 5) {
     if(array.length === max) {array.shift()}

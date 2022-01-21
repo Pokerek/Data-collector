@@ -39,6 +39,7 @@ const outletSchema = new mongoose.Schema({
         features: Array,
         variants: Array
       },
+      attributes:String,
       added_into_system:Boolean
 })
 
@@ -103,7 +104,8 @@ const outlet={
         order_id: orderId,
         auction_id: orderId,
         found_data: {},
-        added_into_system: false
+        added_into_system: false,
+        attributes:product.attributes
       }
   },
 
@@ -113,7 +115,7 @@ const outlet={
     const actualOutlet = await this.loadOutletFromDatabase()
 
     let Outlet_products=[]
-    await orders.matchCancellations(year, month, day)
+    //await orders.matchCancellations(year, month, day)
     let todayOrders=await orders.loadOrdersFromDatabase(year, month, day);
 
     const notFilteredFullCancellations=todayOrders
@@ -160,6 +162,7 @@ const outlet={
     for(let product of Outlet_products)
     {
       product.found_data=await this.getOutletProductFoundData(product)
+      
       await this.create(product)
     }
 
@@ -180,8 +183,27 @@ const outlet={
   async getOutletProductFoundData(Outlet_product)
   {
     const product_id = await baselinker.getProductId(Outlet_product.storage_full_id, Outlet_product.ean)
-    const product_data= await baselinker.getProductData(Outlet_product.storage_full_id, product_id)
-    return product_data
+    
+    if(product_id!=undefined)
+    {
+      const product_data= await baselinker.getProductData(Outlet_product.storage_full_id, product_id);
+      if(product_data!=undefined)
+      {
+        return product_data
+      }
+      else
+      {
+        console.log(`Nie można znaleźć product data dla produktu ${Outlet_product.name} wprowadź go do outletu ręczne`)
+        return false
+      }
+      
+    }
+    else
+    {
+      console.log(`Nie można znaleźć product id dla produktu ${Outlet_product.name}, wprowadź go do outletu ręczne`)
+      return false
+    }
+    
   },
 
   async loadOutletFromDatabase()
@@ -285,9 +307,16 @@ const outlet={
       {
         if(outletproduct.added_into_system!=true)
         {
-          console.log(await baselinker.addProductToSystem(outletproduct))
-          await this.matchAddedIntoSystem(outletproduct.order_id)
-          console.log(`Changes in product ${outletproduct.order_id} was matched into system`)
+          if(outletproduct.found_data!=false && outletproduct.found_data!=undefined)
+          {
+            console.log(await baselinker.addProductToSystem(outletproduct))
+            await this.matchAddedIntoSystem(outletproduct._id)
+          }
+          else
+          {
+            console.log(`brak danych do wprowadzenia produktu ${outletproduct.name}, wprowadź ręcznie`)
+          }
+          
         }
       }
     },  

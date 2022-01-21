@@ -73,12 +73,12 @@ const testingSingle = async (storageName) => {
 
 const outletTest = async () => {
 
-  //await outlet.loadOutlet(2022, 1, 17)
+  //await outlet.loadOutlet(2022, 1, 20)
   //await orders.loadOrdersFromDatabase(2022, 1, 17)
   //console.log(await baselinker.getProductId)
   //console.log(baselinker.convertData)
-  //console.log(await baselinker.getCancellations())
-  //const product_id = await baselinker.getProductId('shop_24301','6920680873173')
+  //console.log(await baselinker.getNotFullCancellations())
+  const product_id = await baselinker.getProductId('db_2043','9111201920118')
   //const product_data= await baselinker.getProductData('shop_24301', product_id)
   //console.log(product_data)
   //const outlets=await outlet.loadOutletFromDatabase()
@@ -90,11 +90,11 @@ const outletTest = async () => {
 
   //console.log(actualOutletProduct)
 
-  await outlet.addOutletToSystem()
+  //await outlet.addOutletToSystem()
 
   //console.log(await baselinker.addNewProduct(actualOutletProduct))
 
 }
 
-//orders.updateFromData(2022 , 1, 17)
+//orders.updateFromData(2022 , 1, 20)
 outletTest()

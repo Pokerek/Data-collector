@@ -106,7 +106,7 @@ const baselinker = {
       
       return [load.data.products[0].product_id]
     } catch(err) {
-        console.log(err.response);
+        console.log('Looking for product ID failed.');
         return false
     }
   },
@@ -191,6 +191,38 @@ const baselinker = {
     });
     
     return load.data.orders[load.data.orders.length-1]
+    } catch(err) {
+        console.log('Błąd w pobieraniu niepełnych zamówień');
+        return false
+    }
+  },
+
+  async getNotFullCancellationsLoss(year, month, day)
+  {
+    const info = new URLSearchParams({
+      'method':'getOrders',
+      'parameters':`{"status_id":+${297842},"get_unconfirmed_orders":+true}`
+    }).toString().replaceAll('%2B','+')
+
+    try{
+      const load = await axios({
+        method: 'post',
+        url:'https://api.baselinker.com/connector.php',
+        headers:{
+        'X-BLToken': token,
+        },
+        data:info,
+        
+    });
+    
+    let loss=0
+    for(let product of load.data.orders[load.data.orders.length-1].products)
+    {
+      if(product.attributes==`${day}.${month}.${year}`.replaceAll(' ',''))
+      {
+        loss+=product.price_brutto
+      }
+    }
     } catch(err) {
         console.log(err.response);
         return false
@@ -446,7 +478,7 @@ const baselinker = {
     const checkFreestore =await this.checkIfProductIsInFreestore(product.ean, product.sku)
     const checkDomyslny =await this.checkIfProductIsInDomyslny(product.ean, product.sku)
 
-    if(checkDomyslny!=false)
+    if(checkDomyslny!=false && checkDomyslny.product_id!=undefined)
     {
       let newquantity=checkDomyslny.stock.bl_555 + product.quantity
       this.changeProductQuantityForDomyslny(checkDomyslny.product_id, newquantity)

@@ -4,6 +4,7 @@ const products = require('./products/products')
 const storages = require('./storages')
 const prices = require('./prices/prices')
 const missedList = require('./products/missedList')
+const wholesalers = require('./prices/wholesalers')
 
 const orderSchema = new mongoose.Schema({
   order_id: Number,
@@ -21,6 +22,7 @@ const orderSchema = new mongoose.Schema({
 			sku: String,
 			ean: String,
       storage_id: Number,
+      storage: String,
 			storage_name: String,
       price: {
         buy: {
@@ -36,7 +38,9 @@ const orderSchema = new mongoose.Schema({
 			quantity: Number,
       profit: Number,
 			location: String,
-			auction_id: String,
+			order_id: String,
+      auction_id: String,
+      source_id:String
   }]
 })
 
@@ -56,6 +60,7 @@ const orders = {
         sku: product.sku,
         ean: product.ean,
         storage_id: product.storage_id,
+        storage: product.storage,
         storage_name: '',
         price: {
           buy: {
@@ -71,7 +76,9 @@ const orders = {
         quantity: product.quantity,
         profit: 0,
         location: product.location,
+        order_id: order.order_id,
         auction_id: product.auction_id,
+        source_id: order.order_source_id
       })
     })
     return {
@@ -95,6 +102,7 @@ const orders = {
     const order = await Order.find({order_id: id})
     return order[0]
   },  
+  
   async updateFromData (year, month, day, time = 86400) {
     const startDate = baselinker.convertData(year, month, day),
           endDate = startDate + time,
@@ -163,68 +171,73 @@ const orders = {
       this.create(order) // Create new order
     })
   },
-  async matchCancellations(orders)
-  {
-    const data = baselinker.convertdata(year, month, day)
-    const cancellationsId=await baselinker.getCancellations(data);
 
-    for(let order of orders)
+  async matchCancellations(year, month, day)
+  {
+    const data = baselinker.convertData(year, month, day)
+    const cancellationsId=await baselinker.getCancellations(data);
+    const database_orders=await this.loadOrdersFromDatabase(year, month, day)
+    for(let order of database_orders)
     {
-      if(cancellationsId.includes(orders.order_id))
+      if(cancellationsId.includes(order.order_id))
       {
-        order.cancelled=true;
+
+        await Order.findOneAndUpdate({ _id:order._id}, { cancelled: true });
 
         if(order.admin_comments.includes('zwrot z dostawą'))
         {
-          order.delivery_price_returned=true;
+          await Order.findOneAndUpdate({ _id }, { delivery_price_returned: true });
         }
       }
     }
+
+    return orders
   },
 
   async loadOrdersFromDatabase(year, month, day)
-    {
-      const startDate = baselinker.convertData(year, month, day),
-        endDate = startDate + 86400
-      let orders=await Order.find(function (err, orders) {
-          if (err) return 'error';
-          else return orders
-      }).clone().catch(function(err){return err})
+  {
+    const startDate = baselinker.convertData(year, month, day, 0, 0, 0),
+      endDate = startDate + 86400
       
-      let ordersFilteredByDate=[]
+    let orders=await Order.find(function (err, orders) {
+        if (err) return false;
+        else return orders
+    }).clone().catch(function(err){return err})
+    
+    let ordersFilteredByDate=[]
 
-      for(let order of orders)
+    for(let order of orders)
+    {
+      if(order.date_confirmed>startDate && order.date_confirmed<endDate)
       {
-        if(order.date_confirmed>startDate && order.date_confirmed<endDate)
-        {
-          ordersFilteredByDate.push(order)
-        }
+        ordersFilteredByDate.push(order)
       }
-      return ordersFilteredByDate;
+    }
+    return ordersFilteredByDate;
     },
 
     async getProfitFromOrders(year, month, day)
     {
-        const orders=await this.loadOrdersFromDatabase(year, month, day);
-        let profit=0;
+      let orders=await this.loadOrdersFromDatabase(year, month, day);
+      let profit=0;
 
-        for(let order of orders)
-        {
-              for(let product of order.products)
-              {
-                  profit+=product.profit;
-              }
-              
-              profit+=order.delivery_price;
-        }
+      for(let order of orders)
+      {
+            for(let product of order.products)
+            {
+                profit+=product.profit;
+            }
+            
+            profit+=order.delivery_price;
+      }
 
-        return profit;
+      return profit;
     },
 
     async getProfitFromOrdersWithCancellations(year, month, day)
     {
-        const orders=await this.loadOrdersFromDatabase(year, month, day);
-        this.matchCancellations(orders);
+        this.matchCancellations(year, month, day);
+        let orders=await this.loadOrdersFromDatabase(year, month, day);
         let profit=0;
 
         for(let order of orders)
@@ -258,76 +271,12 @@ const orders = {
 
         return profit;
     },
-
-    async getProfitFromOutlet(year, month, day)
-    {
-        const orders=await this.loadOrdersFromDatabase(year, month, day);
-        let profit=0;
-
-        for(let order of orders)
-        {
-            for(let product of order.products)
-            {
-                if(product.location='')
-                {
-                    profit+=product.profit;
-                }
-            }
-        }
-
-        return profit;
-    },
-
-
-    async getProfitFromOutletWithCancellations(year, month, day)
-    {
-        const orders=await this.loadOrdersFromDatabase(year, month, day);
-        let profit=0;
-
-        for(let order of orders)
-        {
-            for(let product of order.products)
-            {
-                if(product.location='')
-                {
-                    profit+=product.profit;
-                }
-            }
-        }
-
-        for(let order of orders)
-        {
-            if(!order.cancelled)
-            {
-              for(let product of order.products)
-              {
-                  if(product.location='')
-                  {
-                      profit+=product.profit;
-                  }
-              }
-              
-              profit+=order.delivery_price
-            }
-            else
-            {
-              if(order.delivery_price_returned)
-              {
-                profit-=order.delivery_price
-              }
-              else
-              {
-                profit+=order.delivery_price
-              }
-            }
-        }
-        return profit;
-    },
-
+    
     async getLossFromCancellations(year, month, day)
     {
-      const orders=await this.loadOrdersFromDatabase(year, month, day);
-      this.matchCancellations(orders);
+      this.matchCancellations(year, month, day);
+      const orders=await orders.loadOrdersFromDatabase(year, month, day);
+      
       let loss=0;
 
       for(let order of orders)

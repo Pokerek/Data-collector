@@ -93,5 +93,5 @@ const application_token = {
         }
     }
 } 
-application_token.loadNewToken()
+
 module.exports=application_token;

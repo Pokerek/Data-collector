@@ -14,7 +14,7 @@ const prices = {
                 before)
             if(loaded) { //Banner loaded
                 await page.click(before)
-                await page.waitForTimeout(500)
+                await page.waitForTimeout(1000)
             }
         }
         //Login

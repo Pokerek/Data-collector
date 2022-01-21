@@ -1,7 +1,7 @@
-const mongoose = require('./connect')
+const mongoose = require('./database/mongoose')
 const baselinker = require('./baselinker')
 const orders = require('./orders')
-const products = require('./products')
+const products = require('./products/products')
 const storages = require('./storages')
 const prices = require('./prices/prices')
 

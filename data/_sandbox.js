@@ -22,7 +22,7 @@ const downloadOrders = async (dayStart,dayEnd,month,year) => {
   }
 }
 
-downloadOrders(16,16,01,2022) // (FROM, TO, month, year)
+downloadOrders(20,20,01,2022) // (FROM, TO, month, year)
 
 const testingAll = async () => {
   const start = new Date()

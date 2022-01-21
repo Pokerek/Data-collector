@@ -155,6 +155,7 @@ const orders = {
       console.log(`Progress ${count} / ${storageCount} > ${storage} <`)
       if(storage === "OUTLET") {
         //loop for outlet
+        //removeSold
       } else {
         //if(storage !== "VIVAB2B") {
         if(1) {

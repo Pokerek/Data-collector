@@ -1,10 +1,10 @@
-const mongoose = require('./database/mongoose')
-const baselinker = require('./baselinker')
-const products = require('./products/products')
-const storages = require('./storages')
-const prices = require('./prices/prices')
-const missedList = require('./products/missedList')
-const wholesalers = require('./prices/wholesalers')
+const mongoose = require('../database/mongoose')
+const baselinker = require('../baselinker/baselinker')
+const products = require('./products')
+const storages = require('../database/storages')
+const prices = require('../prices/prices')
+const profit = require('../prices/profit')
+const missedList = require('./missedList')
 
 const orderSchema = new mongoose.Schema({
   order_id: Number,
@@ -13,8 +13,13 @@ const orderSchema = new mongoose.Schema({
 	date_confirmed: Number,
 	date_in_status: Number,
 	admin_comments: String,
-	delivery_method: String,
-  delivery_price: Number,
+	delivery: {
+    method: String,
+    price: Number,
+    cost: Number,
+    returned: Boolean
+  },
+  profit: Number,
   cancelled: Boolean,
   delivery_price_returned: Boolean,
 	products: [{
@@ -88,29 +93,30 @@ const orders = {
       date_confirmed: order.date_confirmed,
       date_in_status: order.date_in_status,
       admin_comments: order.admin_comments,
-      delivery_method: order.delivery_method,
-      delivery_price: order.delivery_price,
+      delivery: {
+        method: order.delivery_method,
+        price: order.delivery_price,
+        cost: 0,
+        returned: false
+      },
+      profit: 0,
       cancelled: false,
-      delivery_price_returned: false,
       products: productsArr
     }
   },
-  async load (date) {
-    return await baselinker.getOrders(date)
-  },
   async exist(id) {
-    const order = await Order.find({order_id: id})
-    return order[0]
+    const order = await Order.findOne({order_id: id})
+    return order
   },  
   
-  async updateFromData (year, month, day, time = 86400) {
+  async updateFromData (year, month, day, period = 1) {
     const startDate = baselinker.convertData(year, month, day),
-          endDate = startDate + time,
+          endDate = startDate + 86400 * period,
           ordersBuffor = []
     let productsBuffor = []
     let storageCount = 0
     //First init
-    let data = await this.load(startDate)
+    let data = await baselinker.getOrders(startDate)
     let nextDate = startDate
     //Loop until load all data (Max 100 per run)
     do {
@@ -119,6 +125,7 @@ const orders = {
           const order = await this.exist((data[index]).order_id)
           if(order) {
             //changes in order
+            
           } else {
             const convertedOrder = this.convert(data[index])
             for (const index in convertedOrder.products) {
@@ -146,7 +153,7 @@ const orders = {
       }
       nextDate = data[data.length - 1].date_confirmed + 1
       if (nextDate < endDate) {
-        data = await this.load(nextDate)
+        data = await baselinker.getOrders(nextDate)
       }
     } while (nextDate < endDate)
 
@@ -168,16 +175,24 @@ const orders = {
       count++
     }
     missedList.save() // Generate list for not found products
-    ordersBuffor.forEach((order) => {
+    ordersBuffor.forEach((order) => { // Loop to create order
+      order.delivery.cost = profit.toDeliveryCost(order)
+      order.profit = profit.toOrder(order)
       this.create(order) // Create new order
     })
   },
 
-  async matchCancellations(year, month, day)
+  async load(year, month, day, time = 0) {
+    const startDate = baselinker.convertData(year, month, day),
+          endDate = startDate + time
+    return await Order.find({date_confirmed: {$gte: startDate, $lt: endDate}})
+  },
+
+  /*async matchCancellations(year, month, day)
   {
     const data = baselinker.convertData(year, month, day)
     const cancellationsId=await baselinker.getCancellations(data);
-    const database_orders=await this.loadOrdersFromDatabase(year, month, day)
+    const database_orders=await this.load(year, month, day)
     for(let order of database_orders)
     {
       if(cancellationsId.includes(order.order_id))
@@ -187,7 +202,7 @@ const orders = {
 
         if(order.admin_comments.includes('zwrot z dostawą'))
         {
-          await Order.findOneAndUpdate({ _id }, { delivery_price_returned: true });
+          await Order.findOneAndUpdate({ _id }, { delivery.returned: true });
         }
       }
     }
@@ -195,50 +210,12 @@ const orders = {
     return orders
   },
 
-  async loadOrdersFromDatabase(year, month, day)
-  {
-    const startDate = baselinker.convertData(year, month, day, 0, 0, 0),
-      endDate = startDate + 86400
-      
-    let orders=await Order.find(function (err, orders) {
-        if (err) return false;
-        else return orders
-    }).clone().catch(function(err){return err})
     
-    let ordersFilteredByDate=[]
-
-    for(let order of orders)
-    {
-      if(order.date_confirmed>startDate && order.date_confirmed<endDate)
-      {
-        ordersFilteredByDate.push(order)
-      }
-    }
-    return ordersFilteredByDate;
-    },
-
-    async getProfitFromOrders(year, month, day)
-    {
-      let orders=await this.loadOrdersFromDatabase(year, month, day);
-      let profit=0;
-
-      for(let order of orders)
-      {
-            for(let product of order.products)
-            {
-                profit+=product.profit;
-            }
-            
-            profit+=order.delivery_price;
-      }
-
-      return profit;
-    },
 
     async getProfitFromOrdersWithCancellations(year, month, day)
     {
         this.matchCancellations(year, month, day);
-        let orders=await this.loadOrdersFromDatabase(year, month, day);
+        let orders=await this.load(year, month, day);
         let profit=0;
 
         for(let order of orders)
@@ -276,7 +253,7 @@ const orders = {
     async getLossFromCancellations(year, month, day)
     {
       this.matchCancellations(year, month, day);
-      const orders=await orders.loadOrdersFromDatabase(year, month, day);
+      const orders=await orders.load(year, month, day);
       
       let loss=0;
 
@@ -301,7 +278,7 @@ const orders = {
       }
 
       return loss;
-    },
+    },*/
 }
 
 module.exports = orders

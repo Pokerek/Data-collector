@@ -1,9 +1,9 @@
-const mongoose = require('./database/mongoose')
-const baselinker = require('./baselinker')
+const mongoose = require('../database/mongoose')
+const baselinker = require('../baselinker/baselinker')
 const orders = require('./orders')
-const products = require('./products/products')
-const storages = require('./storages')
-const prices = require('./prices/prices')
+const products = require('./products')
+const storages = require('../database/storages')
+const prices = require('../prices/prices')
 
 const outletSchema = new mongoose.Schema({
 			name: String,

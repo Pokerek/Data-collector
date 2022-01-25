@@ -1,22 +1,13 @@
 const wholesalers = require('./wholesalers')
 const puppeteer = require('puppeteer')
+const profit = require('./profit')
 const missedList = require('../products/missedList')
 
 const prices = {
     async login(storage,page) {
         await page.goto(storage.urls.login, {waitUntil: 'networkidle2'});
         //Before alert
-        if(storage.alerts.before) {
-            const before = storage.alerts.before
-            await page.waitForSelector(before,{timeout:1000})
-            const loaded = await page.evaluate((selector) => {
-                return document.querySelector(selector) ? true : false}, 
-                before)
-            if(loaded) { //Banner loaded
-                await page.click(before)
-                await page.waitForTimeout(1000)
-            }
-        }
+        await this.alert(storage.alerts.before,page)
         //Login
         if(storage.selectors.preLogin) { //Pre login button
             await page.click(storage.selectors.preLogin)
@@ -36,17 +27,8 @@ const prices = {
         ])
 
         //After alert
-        if(storage.alerts.after) {
-            for(let i = 0; i < storage.alerts.after.length; i++) {
-                const selector = storage.alerts.after[i]
-                await Promise.race([
-                    page.waitForSelector(selector),
-                    page.waitForTimeout(1500)
-                ]) 
-                await page.click(selector)
-                await page.waitForTimeout(500)
-            }
-        }
+        await this.alert(storage.alerts.after,page)
+
         if(storage.options.special === 'APTEL') {
             await page.evaluate(() => {
                 javascript:__doPostBack('ctl00','cookie_info_hide')
@@ -99,13 +81,14 @@ const prices = {
                     await page.waitForSelector(storage.selectors.price)
                 }
                 const htmlText = await page.evaluate((priceSelector,nameSelector,nameProduct) => {
-                        if(1 /*document.querySelector(nameSelector).innerText.slice(0,10) === nameProduct.slice(0,10)*/ ) {
-                            return document.querySelector(priceSelector) ? document.querySelector(priceSelector).innerText : false
-                        } else {
-                            return false
-                        }
-                    }, 
-                    storage.selectors.price,storage.selectors.name,localProduct.name)
+                    const priceBox = document.querySelectorAll(priceSelector)
+                    const length = priceBox.length
+                    if(length) {
+                        return priceBox[length - 1].innerText
+                    } else {
+                        return false
+                    }
+                }, storage.selectors.price,storage.selectors.name,localProduct.name)
                 if(htmlText) {
                     localProduct.price.buy = this.getStoragePrice(localProduct.price.buy,htmlText,localProduct.tax_rate,storage.priceOptions) // Price from storage
                     notFound = false
@@ -116,9 +99,27 @@ const prices = {
             if(notFound) {
                 missedList.add(localProduct)
             } else {
-                products[i] = await this.update(localProduct) // Profit update
+                products[i] = this.updateProfit(localProduct) // Profit update
             }
         }    
+    },
+    async alert(selectors,page) {
+        if(selectors) {
+            for(let i = 0; i < selectors.length; i++) {
+                const selector = selectors[i]
+                await Promise.race([
+                    page.waitForNavigation(selector),
+                    page.waitForTimeout(1500)
+                ])
+                const loaded = await page.evaluate((selector) => {
+                    return document.querySelector(selector) ? true : false}, 
+                    selector)
+                if(loaded) { //Banner loaded
+                    await page.click(selector)
+                    await page.waitForTimeout(1000)
+                }
+            }
+        }
     },
     async addProduct() {
         //Future
@@ -170,22 +171,8 @@ const prices = {
         browser.close()
         return products;
     },
-    getProfit(productPrice) {
-        return productPrice.buy.brutto ? this.calculateProductProfit(productPrice) : 0
-    },
-    calculateDeliveryCosts(){
-        return 0 // do uzupełnienia
-    },
-    calculateProductProfit(productPrice, tax) {
-        tax=(tax/100).toFixed(2)*1
-        let income_tax=((productPrice.sell.netto-productPrice.buy.netto)*0.09).toFixed(2)*1;
-        let vat_tax=productPrice.sell.brutto-productPrice.sell.netto;
-        let delivery_costs=this.calculateDeliveryCosts();
-        let profit=(productPrice.sell.brutto-(productPrice.buy.netto+income_tax+vat_tax+delivery_costs)).toFixed(2)*1;
-        return profit;
-    },
-    async update(product) {
-        product.profit = this.getProfit(product.price)
+    updateProfit(product) {
+        if(product.price.buy.brutto) {product.profit = profit.toProduct(product.price,product.tax_rate)}
         return product
     },
     nettoPrice(brutto,tax, place = 2) {

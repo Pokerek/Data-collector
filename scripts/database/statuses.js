@@ -1,5 +1,5 @@
-const mongoose = require('./connect')
-const baselinker = require('./baselinker')
+const mongoose = require('./mongoose')
+const baselinker = require('../baselinker/baselinker')
 
 const statusSchema = new mongoose.Schema({
   id: String,

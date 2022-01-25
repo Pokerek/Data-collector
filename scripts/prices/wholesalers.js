@@ -11,7 +11,7 @@ const wholesalers = {
             password:process.env.hurtel_pass || '',
         },
         alerts:{
-            before: '#ckdsclmrshtdwn_v2 > span',
+            before: ['#ckdsclmrshtdwn_v2 > span'],
             after: false
         },
         selectors:{
@@ -86,7 +86,7 @@ const wholesalers = {
             password:process.env.epstryk_pass || ''
         },
         alerts:{
-            before: '#ckdsclmrshtdwn_v2 > span',
+            before: ['#ckdsclmrshtdwn_v2 > span'],
             after: false
         },
         selectors:{
@@ -125,7 +125,7 @@ const wholesalers = {
             password:process.env.dmtrade_pass || ''
         },
         alerts:{
-            before: 'button.cc-nb-okagree',
+            before: ['button.cc-nb-okagree'],
             after: false
         },
         selectors:{
@@ -134,7 +134,7 @@ const wholesalers = {
             login:'input[name=umail]',
             employee: false,
             password:'input[name=password]',
-            price:'span.tax > span',
+            price:'.product-a .tax > span',
             submit:'input.button' ,
             preLogin: false,
             search: '#input-szukaj',
@@ -162,7 +162,7 @@ const wholesalers = {
             password:process.env.gadgetmaster_pass || ''
         },
         alerts:{
-            before: '#ckdsclmrshtdwn_v2 > span',
+            before: ['#ckdsclmrshtdwn_v2 > span'],
             after: false
         },
         selectors:{
@@ -200,7 +200,7 @@ const wholesalers = {
             password:process.env.tayma_pass || ''
         },
         alerts:{
-            before: '#ckdsclmrshtdwn_v2 > span',
+            before: ['#ckdsclmrshtdwn_v2 > span'],
             after: false
         },
         selectors:{
@@ -248,7 +248,7 @@ const wholesalers = {
             login:'#Login',
             employee:'#UserName',
             password:'#Password',
-            price:'div:nth-child(3) > span.green',
+            price:'.visible-detail div:nth-child(3) > span.green',
             submit: '#loginForm button[type="submit"]',
             preLogin: '#main > div.header-container.clearfix > div.header-menu-info-container > div.clearfix > button:nth-child(2)',
             search: '#searchPanelContainer input.search',
@@ -388,7 +388,7 @@ const wholesalers = {
             password:process.env.vivab2b_pass || ''
         },
         alerts:{
-            before: '#selly-cookies > div > a',
+            before: ['#selly-cookies > div > a'],
             after: false
         },
         selectors:{
@@ -410,7 +410,7 @@ const wholesalers = {
         },
         typeSearch: ['sku','ean','name'],
         priceOptions: {
-            netto: true,
+            netto: false,
             position: 'right',
             word: 'zł'
         }
@@ -464,7 +464,7 @@ const wholesalers = {
             password:process.env.telforceone_pass || ''
         },
         alerts:{
-            before: '#ue_push_dialog > span',
+            before: ['#ue_push_dialog > span'],
             after: false
         },
         selectors:{
@@ -503,7 +503,7 @@ const wholesalers = {
             password:process.env.lamex_pass || ''
         },
         alerts:{
-            before: '#cookies > div > a',
+            before: ['#cookies > div > a'],
             after: false
         },
         selectors:{
@@ -511,7 +511,7 @@ const wholesalers = {
             notFound: 'div.komunikat',
             login:'#signin_username',
             password:'#signin_password',
-            price:'#product-view .price',
+            price:'#product-view .productGallery .price-all',
             submit: '#register > fieldset > div:nth-child(5) > input',
             preLogin: false,
             search:'input.dark',
@@ -541,7 +541,7 @@ const wholesalers = {
             password:process.env.lechpol_pass || ''
         },
         alerts:{
-            before: 'div.modal-footer > button',
+            before: ['div.modal-footer > button'],
             after: false
         },
         selectors:{
@@ -564,8 +564,7 @@ const wholesalers = {
         typeSearch: ['sku','ean','name'],
         priceOptions: {
             netto: false,
-            position: 'right',
-            word: 'zł'
+            position: false
         }
     },
     
@@ -579,7 +578,7 @@ const wholesalers = {
             password:process.env.amio_pass || ''
         },
         alerts:{
-            before: 'body > footer > div.message-popup-ui.cookie-notice-ui.box-ui.message-popup-lq.bottom-ui > i',
+            before: ['body > footer > div.message-popup-ui.cookie-notice-ui.box-ui.message-popup-lq.bottom-ui > i'],
             after: false
         },
         selectors:{
@@ -587,7 +586,7 @@ const wholesalers = {
             notFound: 'p.message-bar-ui',
             login:'input[name=email]',
             password:'input[name=password]',
-            price:'div.final-price-column-ui > p',
+            price:'div:nth-child(2).product-item-ui .final-price-column-ui > .price-ui',
             submit: 'button.sign-in-lq.enter-key-trigger-lq.button-ui.login-button-ui',
             preLogin: false,
             search:'input.search-ui',
@@ -618,7 +617,7 @@ const wholesalers = {
             password:process.env.fddistribution_pass || ''
         },
         alerts:{
-            before: '#selly-cookies > div > a',
+            before: ['#selly-cookies > div > a'],
             after: false
         },
         selectors:{
@@ -683,7 +682,7 @@ const wholesalers = {
         },
         typeSearch: ['sku','name'],
         priceOptions: {
-            netto: true,
+            netto: false,
             position: 'right',
             word: 'PLN'
         }
@@ -777,7 +776,7 @@ const wholesalers = {
             password:process.env.silit_pass || ''
         },
         alerts:{
-            before: '#cookie-policy-remove-button',
+            before: ['#cookie-policy-remove-button'],
             after: false
         },
         selectors:{
@@ -855,7 +854,7 @@ const wholesalers = {
             password:process.env.topex_pass || ''
         },
         alerts: {
-            before:'#accept-cookies-checkbox',
+            before:['#accept-cookies-checkbox'],
             after:['.swal2-container .swal2-confirm','.swal2-container .swal2-confirm'],
         },
         selectors:{

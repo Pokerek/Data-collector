@@ -7,7 +7,7 @@ const baselinker = {
   async getOrders(data) {
     const info = new URLSearchParams({
       'method':'getOrders',
-      'parameters':`{"date_from":+${data}}`
+      'parameters':`{"date_confirmed_from":+${data}}`
     }).toString().replaceAll('%2B','+');
 
     try{

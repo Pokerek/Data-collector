@@ -1,20 +1,4 @@
 const examples = {
-  dbproduct: {
-    name:"Pilot do Samsung AA59-00602A.",
-    sku:"LXP602",
-    ean:"5902270762105",
-    storage_id:24384,
-    storage_name: "",
-    price_netto_buy: 0,
-    price_brutto_buy: 0,
-    price_netto_sell: 14.41,
-    price_brutto_sell: 17.72,
-    tax_rate: 23,
-    quantity: 1,
-    profit: 0,
-    location: "",
-    auction_id: "11013256970"
-  },
   storageList: {
     HURTEL: [{
       name: "Samsung S View Wallet etui kabura bookcase z inteligentną klapką okien...",
@@ -391,9 +375,9 @@ const examples = {
       auction_id: '11329936654'
     }],
     FDDISTRIBUTION: [{
-      name: "TECH-PROTECT SMARTCASE GALAXY TAB A 10.1 2019 T510/T515 ROSE GOLD",
-      sku: "5906735413014",
-      ean: "5906735413014",
+      name: "RINGKE FUSION X GALAXY M31S CAMO BLACK",
+      sku: "8809758103313",
+      ean: "8809758103313",
       storage_id: 24945,
       storage_name: "FDDISTRIBUTION",
       price: {
@@ -402,15 +386,15 @@ const examples = {
           brutto: 0
         },
         sell: {
-          netto: 34.14,
-          brutto: 41.99
+          netto: 25.61,
+          brutto: 31.5
         }
       },
       tax_rate: 23,
       quantity: 1,
       profit: 0,
       location: "",
-      auction_id: '11329936654'
+      auction_id: '11690241234'
     }],
     APTEL: [{
       name: "TERMOMETR SAMOCHODOWY BAT.+ ŁADOW.",

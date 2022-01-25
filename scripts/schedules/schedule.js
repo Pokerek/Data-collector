@@ -1,8 +1,8 @@
 const Agenda = require('agenda');
-const getUserToken = require('./allegro/user_token');
+const getUserToken = require('../allegro/user_token');
 const daily_raport = require('./prices/daily_raport');
 const orders = require('./orders')
-const complete_daily_raport = require('./prices/complete_daily_raport')
+const complete_daily_raport = require('../prices/complete_daily_raport')
 const { database } = require('agenda/dist/agenda/database');
 
 const mongoConnectionString = 'mongodb://localhost:27017/?readPreference=primary&appname=MongoDB%20Compass&directConnection=true&ssl=false';

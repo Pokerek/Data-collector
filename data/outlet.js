@@ -9,7 +9,7 @@ const outletSchema = new mongoose.Schema({
 			name: String,
 			sku: String,
 			ean: String,
-      storage_id: Number,
+      storage_id: String,
       storage_full_id: String,
       price: {
         sell: {
@@ -182,12 +182,12 @@ const outlet={
 
   async getOutletProductFoundData(Outlet_product)
   {
-    const product_id = await baselinker.getProductId(Outlet_product.storage_full_id, Outlet_product.ean)
+    let product_id = await baselinker.getProductId(Outlet_product.storage_full_id, Outlet_product.ean, Outlet_product.sku)
     
-    if(product_id!=undefined)
+    if(product_id!=false)
     {
       const product_data= await baselinker.getProductData(Outlet_product.storage_full_id, product_id);
-      if(product_data!=undefined)
+      if(product_data!=false)
       {
         return product_data
       }
@@ -200,8 +200,28 @@ const outlet={
     }
     else
     {
-      console.log(`Nie można znaleźć product id dla produktu ${Outlet_product.name}, wprowadź go do outletu ręczne`)
-      return false
+      let productIdInfo=await baselinker.getProductIdData(Outlet_product.storage_id, Outlet_product.ean, Outlet_product.sku)
+      product_id=await baselinker.getProductId(productIdInfo[0], Outlet_product.ean, Outlet_product.sku)
+      if(product_id!=false)
+      {
+        console.log([productIdInfo[0], product_id])
+        const product_data= await baselinker.getProductData(productIdInfo[0], product_id);
+        if(product_data!=false)
+        {
+          return product_data
+        }
+        else
+        {
+          console.log(`Nie można znaleźć product data dla produktu ${Outlet_product.name} wprowadź go do outletu ręczne`)
+          return false
+        }
+        
+      }
+      else
+      {  
+        console.log(`Nie można znaleźć product id dla produktu ${Outlet_product.name}, wprowadź go do outletu ręczne`)
+        return false
+      }
     }
     
   },

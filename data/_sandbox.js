@@ -22,7 +22,7 @@ const downloadOrders = async (dayStart,dayEnd,month,year) => {
   }
 }
 
-downloadOrders(20,20,01,2022) // (FROM, TO, month, year)
+//downloadOrders(20,20,01,2022) // (FROM, TO, month, year)
 
 const testingAll = async () => {
   const start = new Date()
@@ -78,8 +78,13 @@ const outletTest = async () => {
   //console.log(await baselinker.getProductId)
   //console.log(baselinker.convertData)
   //console.log(await baselinker.getNotFullCancellations())
-  const product_id = await baselinker.getProductId('db_2043','9111201920118')
-  //const product_data= await baselinker.getProductData('shop_24301', product_id)
+  const product_id = await baselinker.getProductId('warehouse_2845','8001090728951')
+  console.log(product_id)
+  //const product_id2 = await baselinker.getProductIdForInventory('2043','9111201920118')
+  //console.log(product_id2)
+  //const product_data= await baselinker.getProductIdData('2054','8001090728951')
+  //console.log(product_data)
+  //const product_data= await baselinker.getProductDataforInventory('2043', product_id2)
   //console.log(product_data)
   //const outlets=await outlet.loadOutletFromDatabase()
   //console.log(await outlets[0].found_data)
@@ -89,7 +94,7 @@ const outletTest = async () => {
   //const actualOutletProduct=await outlet.loadOutletFromDatabase()
 
   //console.log(actualOutletProduct)
-
+  
   //await outlet.addOutletToSystem()
 
   //console.log(await baselinker.addNewProduct(actualOutletProduct))

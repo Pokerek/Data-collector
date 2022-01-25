@@ -81,17 +81,28 @@ const baselinker = {
       });
       return await load.data.statuses
     } catch(err) {
-        console.log(err.response);
+        console.log(err);
         return false
     }
   },
 
-  async getProductId(warehouseId, ean)
+  async getProductId(storageId, ean, sku)
   {
-    const info = new URLSearchParams({
+    let info='';
+    if(ean!='')
+    {
+      info = new URLSearchParams({
         'method':'getProductsList',
-        'parameters':`{"storage_id":+"${warehouseId}","filter_ean":+"${ean}"}`
-    }).toString().replaceAll('%2B','+')
+        'parameters':`{"storage_id":+"${storageId}","filter_ean":+"${ean}"}`
+      }).toString().replaceAll('%2B','+')
+    }
+    else
+    {
+      info = new URLSearchParams({
+        'method':'getProductsList',
+        'parameters':`{"storage_id":+"${storageId}","filter_sku":+"${ean}"}`
+      }).toString().replaceAll('%2B','+')
+    }
 
     try{
       const load = await axios({
@@ -103,19 +114,55 @@ const baselinker = {
           data:info,
           
       });
-      
+      console.log('Product ID by storage found.');
       return [load.data.products[0].product_id]
     } catch(err) {
-        console.log('Looking for product ID failed.');
+      console.log('Looking for product ID by storage failed.');
+      return false
+    }
+  },
+
+  async getProductIdData(inventoryId, ean, sku)
+  {
+    let info='';
+    if(ean!='')
+    {
+      info = new URLSearchParams({
+        'method':'getInventoryProductsList',
+        'parameters':`{"inventory_id":+"${inventoryId}","filter_ean":+"${ean}"}`
+      }).toString().replaceAll('%2B','+')
+    }
+    else
+    {
+      info = new URLSearchParams({
+        'method':'getInventoryProductsList',
+        'parameters':`{"inventory_id":+"${inventoryId}","filter_sku":+"${ean}"}`
+      }).toString().replaceAll('%2B','+')
+    }
+
+    try{
+      const load = await axios({
+          method: 'post',
+          url:'https://api.baselinker.com/connector.php',
+          headers:{
+          'X-BLToken': token,
+          },
+          data:info,
+          
+      });
+      console.log('Product ID by inventory found.');
+      return [Object.keys(load.data.products[Object.keys(load.data.products)[0]].stock)[0],load.data.products[Object.keys(load.data.products)[0]].id]
+    } catch(err) {
+        console.log('Looking for product ID by inventory failed.');
         return false
     }
   },
 
-  async getProductData(warehouseId, productsIdArr)
+  async getProductData(storageId, productsIdArr)
   {
     const info = new URLSearchParams({
         'method':'getProductsData',
-        'parameters':`{"storage_id":+"${warehouseId}","products":+${productsIdArr}}`
+        'parameters':`{"storage_id":+"${storageId}","products":+${productsIdArr}}`
     }).toString().replaceAll('%2B','+')
 
     try{
@@ -128,20 +175,22 @@ const baselinker = {
           data:info,
           
       });
-
       let products=[]
       for(let product of Object.keys(load.data.products)) {
         products.push(load.data.products[product])
       }
 
+      console.log('Product data by storage found.');
+
       return products[0]
 
     } catch(err) {
-      console.log(err.response);
+      console.log('Looking for product data by storage failed.');
       return false
     }
   },
 
+  
   async getCancellations(data)
   {
 
@@ -410,13 +459,17 @@ const baselinker = {
       image="url:"+image
       imagesPreparation.push(image.replaceAll(":",";"))
     }
+    
+    
 
     let featuresPreparation = {}
-
     for(let array of outletproduct.found_data.features)
     {
       featuresPreparation[array[0]]=array[1]
     }
+    
+    
+    
     
     const info = new URLSearchParams({
       "method":"addInventoryProduct",
@@ -435,13 +488,13 @@ const baselinker = {
               "bl_555": outletproduct.quantity,
           },
           "text_fields": {
-              "name": outletproduct.found_data.name,
-              "description": outletproduct.found_data.description,
-              "description_extra1": outletproduct.found_data.description_extra1,
-              "description_extra2": outletproduct.found_data.description_extra2,
-              "description_extra3": outletproduct.found_data.description_extra3,
-              "description_extra4": outletproduct.found_data.description_extra4,
-              "features": featuresPreparation
+            "name": outletproduct.found_data.name,
+            "description": outletproduct.found_data.description,
+            "description_extra1": outletproduct.found_data.description_extra1,
+            "description_extra2": outletproduct.found_data.description_extra2,
+            "description_extra3": outletproduct.found_data.description_extra3,
+            "description_extra4": outletproduct.found_data.description_extra4,
+            "features": featuresPreparation
           },
           "images": imagesPreparation,
         }).replaceAll(':',':+').replaceAll(';',':')

@@ -8,13 +8,14 @@ const raport = {
 
     async create(year, month, day, period) {
         const periodNumber = this.periodToNumber(period) 
-        const time = 86400 * periodNumber
-        const loadOrders = await orders.load(year, month, day, time);
+        const time = 86400000 * periodNumber
+        const loadOrders = await orders.load(year, month, day, time / 1000);
         return {
             date: {
                created: new Date(),
                period: periodNumber,
-               started: new Date(year, month - 1, day,1)
+               started: new Date(year, month - 1, day,1),
+               ended: new Date(new Date(year, month - 1, day,1) + time)
             },
             profit: {
                 type: 'zł',
@@ -22,8 +23,7 @@ const raport = {
                 sell: profit.fromOrders(loadOrders),
                 //cancelled: await orders.getLossFromCancellations(year, month, day)
             },
-            sell: this.total(loadOrders,'sell'),
-            buy: this.total(loadOrders,'buy'),
+            total: this.total(loadOrders),
         }
     },
 
@@ -31,19 +31,28 @@ const raport = {
         switch (period) {
             case 'daily':
             case '1':
-            default:
                 return 1
+            default:
+                return period * 1
         }
     },
 
-    total(orders,type) {
-        let total = 0;
+    total(orders) {
+        let sell = 0, buy = 0, delivery = 0
         for(const order of orders) {
+            delivery += order.delivery.price
             for(const product of order.products) {
-                if(type === 'sell') {total += product.price.sell.brutto} else {total += product.price.buy.brutto}
-            }
+                if(product.storage_name !== 'OUTLET') {
+                    sell += product.price.sell.brutto
+                    buy += product.price.buy.brutto
+                }
+            }       
         }
-        return total.toFixed(2) * 1
+        return {
+            sell: sell.toFixed(2) * 1,
+            buy: buy.toFixed(2) * 1,
+            delivery: delivery.toFixed(2) * 1
+        }
     }
 }
 

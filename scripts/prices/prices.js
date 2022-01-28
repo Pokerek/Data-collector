@@ -4,6 +4,9 @@ const profit = require('./profit')
 const missedList = require('../products/missedList')
 
 const prices = {
+    productIndex: 0,
+    errorTime: 0,
+    helpBuffor: 0,
     async login(storage,page) {
         await page.goto(storage.urls.login, {waitUntil: 'networkidle2'});
         //Before alert
@@ -34,16 +37,16 @@ const prices = {
                 javascript:__doPostBack('ctl00','cookie_info_hide')
             })
             await page.waitForNavigation()
-        } 
+        }
     },
-    async search(storage,page,products) {
+    async search(storage,page,products,startIndex = 0) {
         // Wait for search reload
         if(storage.options.searchWait) {
             await page.waitForTimeout(500)
         }
 
         //Search
-        for(let i = 0; i < products.length; i++) // For each product
+        for(let i = startIndex; i < products.length; i++) // For each product
         {
             const localProduct = products[i]; // Copy product
             let notFound = true
@@ -80,24 +83,39 @@ const prices = {
                     await page.click('.box-body > table > tbody > tr > td.align-middle.text-center > a > i')
                     await page.waitForSelector(storage.selectors.price)
                 }
-                const htmlText = await page.evaluate((priceSelector,nameSelector,nameProduct) => {
+                const htmlText = await page.evaluate((priceSelector,pricePos,nameSelector,nameProduct) => {
                     const priceBox = document.querySelectorAll(priceSelector)
                     const length = priceBox.length
+                    //ToDo testing name of searching product
                     if(length) {
-                        return priceBox[length - 1].innerText
+                        if(priceBox[pricePos]) {
+                            return priceBox[pricePos].innerText
+                        } else {
+                            return priceBox[0].innerText
+                        }
                     } else {
                         return false
                     }
-                }, storage.selectors.price,storage.selectors.name,localProduct.name)
+                }, storage.selectors.price,storage.selectors.pricePos,storage.selectors.name,localProduct.name)
                 if(htmlText) {
-                    localProduct.price.buy = this.getStoragePrice(localProduct.price.buy,htmlText,localProduct.tax_rate,storage.priceOptions) // Price from storage
+                    let quantity = 1
+                    if(storage.options.special === 'LECHPOL') { //Quantity for lechpol
+                        quantity = await page.evaluate(() => {
+                            let quantityText = document.querySelector(".qty-multiplier strong")
+                            if(quantityText) {
+                                return quantityText.innerHTML * 1
+                            }
+                            return 1
+                        })
+                    }
+                    localProduct.price.buy = this.getStoragePrice(localProduct.price.buy,htmlText,localProduct.tax_rate,storage.priceOptions,quantity) // Price from storage
                     notFound = false
                     break
                 }
-                
+                this.positionIndex++ //Product search complete
             }
             if(notFound) {
-                missedList.add(localProduct)
+                missedList.add(localProduct,'Not found')
             } else {
                 products[i] = this.updateProfit(localProduct) // Profit update
             }
@@ -141,11 +159,11 @@ const prices = {
             await page.evaluate((selector) => {
                 document.querySelector(selector).click()}, 
                 storage.selectors.logout)
-        } 
+        }
     },
-    async getPrices(products, storageName,hidden = false ) {
+    async getPrices(products, storageName,hidden = false, first = true) {
         const storage = wholesalers[storageName]
-        
+
         const browser = await puppeteer.launch({
             headless: hidden,
             defaultViewport: {
@@ -155,15 +173,25 @@ const prices = {
         })
         
         const page = await browser.newPage()
+        if(first) {
+            this.productIndex = 0 // For save position in crached
+            this.errorTime = 0 // For max loop iteration after error
+        }
         if(storage) {
             try {
                 await this.login(storage,page)
-                await this.search(storage,page,products)
+                await this.search(storage,page,products,this.productIndex)
                 await this.logout(storage,page)
                 console.log(`${storageName} - complete`) 
             } catch (error) {
                 browser.close()
-                console.error(`${storageName} - error: ${error}`)
+                if(this.errorTime === 2) {
+                    console.error(`${storageName} - error: ${error}. Need to fix that storage.`)
+                    return products
+                } else {
+                    this.errorTime++ // Interaction for error
+                    products = await this.getPrices(products,storageName,hidden,false)
+                }
             }
         } else {
             console.log(`Not found storage ${storageName}`)
@@ -181,7 +209,7 @@ const prices = {
     bruttoPrice(netto,tax, place = 2) {
         return (netto * ( 1 + tax / 100)).toFixed(place) * 1
     },
-    getStoragePrice(productPrice, priceHTML, tax, options){
+    getStoragePrice(productPrice, priceHTML, tax, options,quantity = 1){
         switch (options.position) {
             case 'left':
                 priceHTML = priceHTML.slice(priceHTML.indexOf(options.word) + 1)
@@ -190,7 +218,7 @@ const prices = {
                 priceHTML = priceHTML.slice(0,priceHTML.indexOf(options.word)-1)
                 break;
         }
-        const price = priceHTML.replaceAll(',','.') * 1
+        const price = priceHTML.replaceAll(',','.') * quantity
         if (options.netto) {
             productPrice.netto = price || 0
             productPrice.brutto = this.bruttoPrice(price,tax) || 0

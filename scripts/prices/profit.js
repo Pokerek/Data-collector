@@ -8,41 +8,46 @@ const profit = {
     }
     return profit.toFixed(2) * 1;
   },
-  toProduct(productPrice, vat, provision = 0.12) {
+  toProduct(productPrice, vat, provision = 0.12,tax = 0.09) {
     if(vat > 1) {vat = (vat / 100)}
     const allegroCost = productPrice.sell.brutto * provision,
-          allegroVat = (allegroCost / (1.23)) * 0.23,
-          productVat = (productPrice.sell.netto - productPrice.buy.netto) * vat
-    return (productPrice.sell.brutto - allegroCost + allegroVat - productVat - productPrice.buy.netto).toFixed(2) * 1
+          allegroTax = (allegroCost / (1.23)) * (0.23 + tax),
+          productTax = (productPrice.sell.netto - productPrice.buy.netto) * (vat + tax)
+    return (productPrice.sell.brutto - allegroCost + allegroTax - productTax - productPrice.buy.brutto).toFixed(2) * 1
   },
-  toOrder(order) {
-    order.products.forEach(product => {
-      order.profit += product.profit
-    })
+  toOrder(order,tax = 0.09) {
+    if(!order.cancelled) {
+      order.products.forEach(product => {
+        order.profit += product.profit * product.quantity
+      })
+    }
     const deliveryTotal = order.delivery.price - order.delivery.cost,
-          deliveryVat = (deliveryTotal / 1.23 * 0.23).toFixed(2) * 1
-    return (order.profit + (deliveryTotal - deliveryVat)).toFixed(2) * 1 
+          deliveryTax = (deliveryTotal / 1.23 * (0.23 + tax)).toFixed(2) * 1
+    return (order.profit + (deliveryTotal - deliveryTax)).toFixed(2) * 1 
   },
-  toDeliveryCost(order) {
+  toDeliveryCost(order,provision = 0.12) {
     let total = 0
     order.products.forEach(product => {
       total += product.price.sell.brutto
     })
     total = total.toFixed(2) * 1
-    
-    let allegroCost = 0
-    if(order.delivery.price && order.delivery.price !== 3.99) {
-      allegroCost = deliveryCost[order.delivery.method]['0']
-    } else if(total < 80) {
-      allegroCost = deliveryCost[order.delivery.method]['40']
-    } else if (total < 200) {
-      allegroCost = deliveryCost[order.delivery.method]['80']
-    } else if (total < 300) {
-      allegroCost = deliveryCost[order.delivery.method]['200']
-    } else if (total >= 300) {
-      allegroCost = deliveryCost[order.delivery.method]['300']
+    let cost = 0
+    if(deliveryCost.hasOwnProperty(order.delivery.method)) {
+      if(order.delivery.price && order.delivery.price !== 3.99) {
+        cost = deliveryCost[order.delivery.method]['0'] 
+      } else if(total < 80) {
+        cost = deliveryCost[order.delivery.method]['40']
+      } else if (total < 200) {
+        cost = deliveryCost[order.delivery.method]['80']
+      } else if (total < 300) {
+        cost = deliveryCost[order.delivery.method]['200']
+      } else if (total >= 300) {
+        cost = deliveryCost[order.delivery.method]['300']
+      }
+    } else {
+      cost = order.delivery.price
     }
-    return allegroCost
+    return cost
   }
 }
 

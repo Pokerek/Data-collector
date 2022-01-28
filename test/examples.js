@@ -67,9 +67,9 @@ const examples = {
       auction_id: 0
     }],
     EPSTRYK: [{
-      name: "Dzwonek 16 melodii 8-230V srebrny, , sundi Zamel",
-      sku: "DNU-912/N-SRB",
-      ean: "5903669901815",
+      name: "Oprawa punktowa natynkowa listwa MALGA 3 Black spot 3xGU10 czarny EDO",
+      sku: "EDO777349",
+      ean: "5903943489213",
       storage_id: 24947,
       storage_name: "EPSTRYK",
       price: {
@@ -78,8 +78,8 @@ const examples = {
           brutto: 0
         },
         sell: {
-          netto: 56.64,
-          brutto: 69.67
+          netto: 84.54,
+          brutto: 103.99
         }
       },
       tax_rate: 23,
@@ -199,9 +199,9 @@ const examples = {
       auction_id: 0
     }],
     ABONLINE: [{
-      name: "ENELOOP LITE AAA 550mAh 3000 CYKLI 2SZT.",
-      sku: "AZPABUA30154004",
-      ean: "5410853052753",
+      name: "Elmak SAVIO BT-040 Adapter komputerowy USB Nano, Bluetooth 4.0, 3Mb/s, zasięg 50m",
+      sku: "AIELMA00SAVBT04",
+      ean: "5901986043157",
       storage_id: 24948,
       storage_name: "ABONLINE",
       price: {
@@ -210,8 +210,8 @@ const examples = {
           brutto: 0
         },
         sell: {
-          netto: 16.84,
-          brutto: 20.71
+          netto: 26.26,
+          brutto: 32.3
         }
       },
       tax_rate: 23,
@@ -331,9 +331,9 @@ const examples = {
       auction_id: '11013256970'
     }],
     LECHPOL: [{
-      name: "Rozgałęźnik RM 3F TELMOR",
-      sku: "ZLA0708",
-      ean: "5901436750420",
+      name: "Gniazdo RCA srebrne 3 paski na kabel czerwone /25szt.",
+      sku: "GNI0071B",
+      ean: "5901436755630",
       storage_id: 24522,
       storage_name: "LECHPOL",
       price: {
@@ -342,15 +342,15 @@ const examples = {
           brutto: 0
         },
         sell: {
-          netto: 25.2,
-          brutto: 30.99
+          netto: 27.63,
+          brutto: 33.99
         }
       },
       tax_rate: 23,
       quantity: 1,
       profit: 0,
       location: "",
-      auction_id: '11013256970'
+      auction_id: '11102270740'
     }],
     AMIO: [{
       name: "Termowentylator grzejnik samochodowy -12V 150W",
@@ -527,6 +527,28 @@ const examples = {
       profit: 0,
       location: "",
       auction_id: '11280351106'
+    }],
+    K2: [{
+      name: "3MK HardGlass Apple, iPhone 13/13 Pro",
+      sku: "Apple iPhone 13/13 Pro",
+      ean: "5903108436021",
+      storage_id: 25884,
+      storage_name: "K2",
+      price: {
+        buy: {
+          netto: 0,
+          brutto: 0
+        },
+        sell: {
+          netto: 12.67,
+          brutto: 15.58
+        }
+      },
+      tax_rate: 23,
+      quantity: 3,
+      profit: 0,
+      location: "",
+      auction_id: '11740237587'
     }]
   }
 }

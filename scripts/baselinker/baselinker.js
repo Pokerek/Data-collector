@@ -1,36 +1,25 @@
 const axios = require('axios')
-require('dotenv').config({path:'../.env'})
-
+const env = require('dotenv').config({path:'../.env'})
 const token = process.env.BL_TOKEN || ''
 
 const baselinker = {
-  async getOrders(data) {
+  token: process.env.BL_TOKEN || '',
+  async getOrders(date) {
     const info = new URLSearchParams({
       'method':'getOrders',
-      'parameters':`{"date_confirmed_from":+${data}}`
+      'parameters':`{"date_confirmed_from":+${date}}`
     }).toString().replaceAll('%2B','+');
-
     try{
       const load = await axios({
         method: 'post',
         url:'https://api.baselinker.com/connector.php',
         headers:{
-        'X-BLToken': token,
+        'X-BLToken': this.token,
         },
         data:info,   
-      });
-      
-      let orders=[]
+      })
 
-      for(let order of load.data.orders)
-      {
-        if(order.status_id!=297842)
-        {
-          orders.push(order)
-        }
-      }
-
-      return orders
+      return load.data.orders
       
     } catch(err) {
         console.log(err.response);
@@ -53,7 +42,7 @@ const baselinker = {
         method: 'post',
         url:'https://api.baselinker.com/connector.php',
         headers:{
-        'X-BLToken': token,
+        'X-BLToken': this.token,
         },
         data:info,   
       });
@@ -75,11 +64,11 @@ const baselinker = {
         method: 'post',
         url:'https://api.baselinker.com/connector.php',
         headers:{
-        'X-BLToken': token,
+        'X-BLToken': this.token,
         },
         data:info,   
       });
-      return await load.data.statuses
+      return await load.data.statuses  
     } catch(err) {
         console.log(err.response);
         return false
@@ -98,7 +87,7 @@ const baselinker = {
           method: 'post',
           url:'https://api.baselinker.com/connector.php',
           headers:{
-          'X-BLToken': token,
+          'X-BLToken': this.token,
           },
           data:info,
           
@@ -123,7 +112,7 @@ const baselinker = {
           method: 'post',
           url:'https://api.baselinker.com/connector.php',
           headers:{
-          'X-BLToken': token,
+          'X-BLToken': this.token,
           },
           data:info,
           
@@ -155,7 +144,7 @@ const baselinker = {
           method: 'post',
           url:'https://api.baselinker.com/connector.php',
           headers:{
-          'X-BLToken': token,
+          'X-BLToken': this.token,
           },
           data:info,
           
@@ -184,7 +173,7 @@ const baselinker = {
         method: 'post',
         url:'https://api.baselinker.com/connector.php',
         headers:{
-        'X-BLToken': token,
+        'X-BLToken': this.token,
         },
         data:info,
         
@@ -209,7 +198,7 @@ const baselinker = {
         method: 'post',
         url:'https://api.baselinker.com/connector.php',
         headers:{
-        'X-BLToken': token,
+        'X-BLToken': this.token,
         },
         data:info,
         
@@ -241,7 +230,7 @@ const baselinker = {
         method: 'post',
         url:'https://api.baselinker.com/connector.php',
         headers:{
-        'X-BLToken': token,
+        'X-BLToken': this.token,
         },
         data:info,
         
@@ -281,7 +270,7 @@ const baselinker = {
         method: 'post',
         url:'https://api.baselinker.com/connector.php',
         headers:{
-        'X-BLToken': token,
+        'X-BLToken': this.token,
         },
         data:info,
         
@@ -327,7 +316,7 @@ const baselinker = {
         method: 'post',
         url:'https://api.baselinker.com/connector.php',
         headers:{
-          'X-BLToken': token,
+          'X-BLToken': this.token,
         },
         data:info,
         
@@ -366,7 +355,7 @@ const baselinker = {
         method: 'post',
         url:'https://api.baselinker.com/connector.php',
         headers:{
-          'X-BLToken': token,
+          'X-BLToken': this.token,
         },
         data:info,
         
@@ -452,7 +441,7 @@ const baselinker = {
         method: 'post',
         url:'https://api.baselinker.com/connector.php',
         headers:{
-          'X-BLToken': token,
+          'X-BLToken': this.token,
         },
         data:info,
         

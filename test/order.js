@@ -11,7 +11,7 @@ const downloadOrders = async (dayStart,dayEnd,month,year) => {
   }
 }
 
-downloadOrders(18,20,01,2022) // (FROM, TO, month, year)
+downloadOrders(26,26,01,2022) // (FROM, TO, month, year)
 
 const testingAll = async () => {
   const start = new Date()
@@ -52,4 +52,4 @@ const testingSingle = async (storageName) => {
 
 //testingAll()
 
-//testingSingle('TOPEX')
+//testingSingle('TELFORCEONE')

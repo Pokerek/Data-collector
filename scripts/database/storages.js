@@ -1,5 +1,5 @@
-const mongoose = require('./connect')
-const baselinker = require('./baselinker')
+const mongoose = require('./mongoose')
+const baselinker = require('../baselinker/baselinker')
 
 const storgeSchema = new mongoose.Schema({
   storage_id: String,
@@ -55,12 +55,18 @@ const storages = {
     return array
   },
   async getName(id) {
-    let storages = await Storage.find({storage_id: id})
-    if(!storages[0]) {
-      await this.update()
-      storages = await Storage.find({storage_id: id})
+    if (id == 1154 || id == 380) { //OUTLET 
+      return 'OUTLET'
+    } else {
+      let storages = await Storage.find({storage_id: id})
+      if(!storages[0]) { //Update list and find again
+        await this.update()
+        storages = await Storage.find({storage_id: id})
+        return storages[0] ? storages[0].name : 'Brak statusu'
+      } else {
+        return storages[0].name
+      }
     }
-    return storages[0] ? storages[0].name : 'Brak statusu'
   }
 }
 

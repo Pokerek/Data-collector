@@ -1,20 +1,4 @@
 const examples = {
-  dbproduct: {
-    name:"Pilot do Samsung AA59-00602A.",
-    sku:"LXP602",
-    ean:"5902270762105",
-    storage_id:24384,
-    storage_name: "",
-    price_netto_buy: 0,
-    price_brutto_buy: 0,
-    price_netto_sell: 14.41,
-    price_brutto_sell: 17.72,
-    tax_rate: 23,
-    quantity: 1,
-    profit: 0,
-    location: "",
-    auction_id: "11013256970"
-  },
   storageList: {
     HURTEL: [{
       name: "Samsung S View Wallet etui kabura bookcase z inteligentną klapką okien...",
@@ -83,9 +67,9 @@ const examples = {
       auction_id: 0
     }],
     EPSTRYK: [{
-      name: "Dzwonek 16 melodii 8-230V srebrny, , sundi Zamel",
-      sku: "DNU-912/N-SRB",
-      ean: "5903669901815",
+      name: "Oprawa punktowa natynkowa listwa MALGA 3 Black spot 3xGU10 czarny EDO",
+      sku: "EDO777349",
+      ean: "5903943489213",
       storage_id: 24947,
       storage_name: "EPSTRYK",
       price: {
@@ -94,8 +78,8 @@ const examples = {
           brutto: 0
         },
         sell: {
-          netto: 56.64,
-          brutto: 69.67
+          netto: 84.54,
+          brutto: 103.99
         }
       },
       tax_rate: 23,
@@ -215,9 +199,9 @@ const examples = {
       auction_id: 0
     }],
     ABONLINE: [{
-      name: "ENELOOP LITE AAA 550mAh 3000 CYKLI 2SZT.",
-      sku: "AZPABUA30154004",
-      ean: "5410853052753",
+      name: "Elmak SAVIO BT-040 Adapter komputerowy USB Nano, Bluetooth 4.0, 3Mb/s, zasięg 50m",
+      sku: "AIELMA00SAVBT04",
+      ean: "5901986043157",
       storage_id: 24948,
       storage_name: "ABONLINE",
       price: {
@@ -226,8 +210,8 @@ const examples = {
           brutto: 0
         },
         sell: {
-          netto: 16.84,
-          brutto: 20.71
+          netto: 26.26,
+          brutto: 32.3
         }
       },
       tax_rate: 23,
@@ -347,9 +331,9 @@ const examples = {
       auction_id: '11013256970'
     }],
     LECHPOL: [{
-      name: "Rozgałęźnik RM 3F TELMOR",
-      sku: "ZLA0708",
-      ean: "5901436750420",
+      name: "Gniazdo RCA srebrne 3 paski na kabel czerwone /25szt.",
+      sku: "GNI0071B",
+      ean: "5901436755630",
       storage_id: 24522,
       storage_name: "LECHPOL",
       price: {
@@ -358,15 +342,15 @@ const examples = {
           brutto: 0
         },
         sell: {
-          netto: 25.2,
-          brutto: 30.99
+          netto: 27.63,
+          brutto: 33.99
         }
       },
       tax_rate: 23,
       quantity: 1,
       profit: 0,
       location: "",
-      auction_id: '11013256970'
+      auction_id: '11102270740'
     }],
     AMIO: [{
       name: "Termowentylator grzejnik samochodowy -12V 150W",
@@ -391,9 +375,9 @@ const examples = {
       auction_id: '11329936654'
     }],
     FDDISTRIBUTION: [{
-      name: "TECH-PROTECT SMARTCASE GALAXY TAB A 10.1 2019 T510/T515 ROSE GOLD",
-      sku: "5906735413014",
-      ean: "5906735413014",
+      name: "RINGKE FUSION X GALAXY M31S CAMO BLACK",
+      sku: "8809758103313",
+      ean: "8809758103313",
       storage_id: 24945,
       storage_name: "FDDISTRIBUTION",
       price: {
@@ -402,15 +386,15 @@ const examples = {
           brutto: 0
         },
         sell: {
-          netto: 34.14,
-          brutto: 41.99
+          netto: 25.61,
+          brutto: 31.5
         }
       },
       tax_rate: 23,
       quantity: 1,
       profit: 0,
       location: "",
-      auction_id: '11329936654'
+      auction_id: '11690241234'
     }],
     APTEL: [{
       name: "TERMOMETR SAMOCHODOWY BAT.+ ŁADOW.",
@@ -543,6 +527,28 @@ const examples = {
       profit: 0,
       location: "",
       auction_id: '11280351106'
+    }],
+    K2: [{
+      name: "3MK HardGlass Apple, iPhone 13/13 Pro",
+      sku: "Apple iPhone 13/13 Pro",
+      ean: "5903108436021",
+      storage_id: 25884,
+      storage_name: "K2",
+      price: {
+        buy: {
+          netto: 0,
+          brutto: 0
+        },
+        sell: {
+          netto: 12.67,
+          brutto: 15.58
+        }
+      },
+      tax_rate: 23,
+      quantity: 3,
+      profit: 0,
+      location: "",
+      auction_id: '11740237587'
     }]
   }
 }

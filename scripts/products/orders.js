@@ -23,6 +23,7 @@ const orderSchema = new mongoose.Schema({
   },
   profit: Number,
   cancelled: Boolean,
+  ordered: Boolean,
   delivery_price_returned: Boolean,
 	products: [{
 			name: String,
@@ -42,7 +43,10 @@ const orderSchema = new mongoose.Schema({
         }
       },
 			tax_rate: Number,
-			quantity: Number,
+			quantity: {
+        actual: Number,
+        returned: Number
+      },
       profit: Number,
 			location: String,
 			order_id: String,
@@ -80,7 +84,10 @@ const orders = {
           }
         },
         tax_rate: product.tax_rate,
-        quantity: product.quantity,
+        quantity: {
+          actual: product.quantity,
+          returned: 0
+        },
         profit: 0,
         location: product.location,
         order_id: order.order_id,
@@ -105,13 +112,14 @@ const orders = {
       },
       profit: 0,
       cancelled: false,
+      ordered: false,
       products: productsArr
     }
   },
   
   async updateFromData (year, month, day, period = 1) {
     const startDate = baselinker.convertData(year, month, day),
-          endDate = startDate + 86400 * period,
+          endDate = baselinker.convertData(year,month,day + period,0,0,-1),
           ordersBuffor = []
     let productsBuffor = []
     let outletBuffor = []
@@ -129,18 +137,34 @@ const orders = {
             if(order.admin_comments !== newOrder.admin_comments) { order.admin_comments = newOrder.admin_comments } // change admin comments
             if(order.status_id !== newOrder.status_id || order.date_in_status !== newOrder.date_in_status) { //changes in order
               //Change status_id in db
+              if(!order.delivery.returned) { order.delivery.price = newOrder.delivery.price } // Change in delivery price
+              switch (newOrder.status_id) { //Order buy in storage
+                case 289433:
+                case 289441:
+                case 275301:
+                case 276221:
+                case 257285:
+                case 275294:
+                  order.ordered = true
+                  break
+              }
               order.status_id = newOrder.status_id
               order.date_in_status = newOrder.date_in_status
-              if(!order.delivery.returned) { order.delivery.price = newOrder.delivery.price } // Change in delivery price
               if(order.status_id === 289429 || order.status_id === 297987) { //Canceled
                 order.cancelled = true 
-              } else { //Update products (Cancell or delete or quantity)
+              } else { //Update products
                 for(const newProduct of newOrder.products) {
                   let notFound = true, notExist = true
                   for(const index in order.products) {
                     const product = order.products[index]
                     if(newProduct.ean === product.ean && newProduct.auction_id === product.auction_id) {
-                      product.quantity = newProduct.quantity
+                      if(product.quantity.actual > newProduct.quantity.actual) { //quantity update
+                        product.quantity.returned = product.quantity.actual - newProduct.quantity.actual
+                      } else if (product.quantity.actual < newProduct.quantity.actual) {
+                        product.quantity.returned -= newProduct.quantity.actual - product.quantity.actual
+                        if(product.quantity.returned < 0) {product.quantity.returned = 0}
+                        product.quantity.actual = newProduct.quantity.actual
+                      }
                       product.sell = newProduct.sell
                       product.location = newProduct.location
                       product.ean = newProduct.ean
@@ -165,9 +189,8 @@ const orders = {
                 order.delivery.returned = true
                 order.delivery.price = 0
               }
-              order.profit = profit.toOrder(order) //if cancelled remove else recalulate
+              order.profit = profit.toOrder(order)
             }
-            
             await order.save()
           } else {
             for (const index in newOrder.products) {
@@ -222,110 +245,16 @@ const orders = {
       if(order.status_id === 289429 || order.status_id === 297987) { //Canceled
         order.cancelled = true 
       }
-      
+      order.ordered = (order.status_id !== 198313 && order.status_id !== 251543 && order.status_id !== 289431 && order.status_id !== 289434 && order.status_id !== 289436) ? true : false
       order.profit = profit.toOrder(order)
       this.create(order) // Create new order
     })
     missedList.save() // Generate list for not found products or error
   },
 
-  async load(year, month, day, time = 0) {
-    const startDate = baselinker.convertData(year, month, day),
-          endDate = startDate + time
-    return await Order.find({date_confirmed: {$gte: startDate, $lt: endDate}})
-  },
-
-  /*async matchCancellations(year, month, day)
-  {
-    const data = baselinker.convertData(year, month, day)
-    const cancellationsId=await baselinker.getCancellations(data);
-    const database_orders=await this.load(year, month, day)
-    for(let order of database_orders)
-    {
-      if(cancellationsId.includes(order.order_id))
-      {
-
-        await Order.findOneAndUpdate({ _id:order._id}, { cancelled: true });
-
-        if(order.admin_comments.includes('zwrot z dostawą'))
-        {
-          await Order.findOneAndUpdate({ _id }, { delivery.returned: true });
-        }
-      }
-    }
-
-    return orders
-  },
-
-    
-
-    async getProfitFromOrdersWithCancellations(year, month, day)
-    {
-        this.matchCancellations(year, month, day);
-        let orders=await this.load(year, month, day);
-        let profit=0;
-
-        for(let order of orders)
-        {
-            if(!order.cancelled)
-            {
-              for(let product of order.products)
-              {
-                  profit+=product.profit;
-              }
-              
-              profit+=order.delivery_price
-            }
-            else
-            {
-              for(let product of order.products)
-              {
-                  profit-=product.price.buy.brutto;
-              }
-
-              if(order.delivery_price_returned)
-              {
-                profit-=order.delivery_price
-              }
-              else
-              {
-                profit+=order.delivery_price
-              }
-            }
-        }
-
-        return profit;
-    },
-    
-    async getLossFromCancellations(year, month, day)
-    {
-      this.matchCancellations(year, month, day);
-      const orders=await orders.load(year, month, day);
-      
-      let loss=0;
-
-      for(let order of orders)
-      {
-          if(order.cancelled)
-          {
-            for(let product of order.products)
-            {
-                loss+=product.price.buy.brutto;
-            }
-
-            if(order.delivery_price_returned)
-            {
-              loss+=order.delivery_price
-            }
-            else
-            {
-              loss-=order.delivery_price
-            }
-          }
-      }
-
-      return loss;
-    },*/
+  async loadFromDate(start,end) {
+    return await Order.find({date_add: {$gte: start, $lte: end}})
+  }
 }
 
 module.exports = orders

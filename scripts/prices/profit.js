@@ -6,7 +6,33 @@ const profit = {
     for(const order of orders) {
       profit += order.profit;
     }
-    return profit.toFixed(2) * 1;
+    return profit.toFixed(2) * 1
+  },
+  fromOutlet(orders) {
+    let profit = 0;
+    for(const order of orders) {
+      for (const product of order.products) {
+        if(product.storage_name === 'OUTLET') {profit += product.price.sell.brutto * product.quantity.actual}
+      }
+    }
+    return profit.toFixed(2) * 1
+  },
+  fromCancelled(orders) {
+    let profit = 0;
+    for(const order of orders) {
+      if(order.ordered) {
+        if(order.cancelled) {
+          for (const product of order.products) {
+            if(product.storage_name !== 'OUTLET') {profit += product.price.buy.brutto * product.quantity.actual}
+          }
+        } else {
+          for (const product of order.products) {
+            if(product.quantity.returned) {profit += product.price.buy.brutto * product.quantity.returned}
+          }
+        }
+      }
+    }
+    return profit.toFixed(2) * 1
   },
   toProduct(productPrice, vat, provision = 0.12,tax = 0.09) {
     if(vat > 1) {vat = (vat / 100)}
@@ -16,9 +42,10 @@ const profit = {
     return (productPrice.sell.brutto - allegroCost + allegroTax - productTax - productPrice.buy.brutto).toFixed(2) * 1
   },
   toOrder(order,tax = 0.09) {
+    order.profit = 0
     if(!order.cancelled) {
       order.products.forEach(product => {
-        order.profit += product.profit * product.quantity
+        order.profit += product.profit * product.quantity.actual
       })
     }
     const deliveryTotal = order.delivery.price - order.delivery.cost,

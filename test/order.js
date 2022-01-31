@@ -3,15 +3,15 @@ const orders = require('../scripts/products/orders')
 const prices = require('../scripts/prices/prices')
 
 const time = 86400 * 7
-const downloadOrders = async (dayStart,dayEnd,month,year) => {
-  for (let day = dayStart; day <= dayEnd; day++) {
+const downloadOrders = async (year,month,day,period = 1) => {
+  for (let i = 0; i < period; i++) {
     console.log(`Data: ${year}-${month}-${day}`)
-    await orders.updateFromData(year,month,day)
+    await orders.updateFromData(year,month,day + i)
     console.log(`-----------------------------------------`)
   }
 }
 
-downloadOrders(26,26,01,2022) // (FROM, TO, month, year)
+downloadOrders(2022,01,30,1) // (FROM, TO, month, year)
 
 const testingAll = async () => {
   const start = new Date()

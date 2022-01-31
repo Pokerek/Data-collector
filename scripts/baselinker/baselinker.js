@@ -1,6 +1,6 @@
 const axios = require('axios')
-const env = require('dotenv').config({path:'../.env'})
-const token = process.env.BL_TOKEN || ''
+require('dotenv').config({path:'../.env'})
+
 
 const baselinker = {
   token: process.env.BL_TOKEN || '',

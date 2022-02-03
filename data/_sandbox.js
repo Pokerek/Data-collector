@@ -73,29 +73,29 @@ const testingSingle = async (storageName) => {
 
 const outletTest = async () => {
 
-  //await outlet.loadOutlet(2022, 1, 20)
+  //await outlet.loadOutlet(2022, 1, 19)
   //await orders.loadOrdersFromDatabase(2022, 1, 17)
   //console.log(await baselinker.getProductId)
   //console.log(baselinker.convertData)
   //console.log(await baselinker.getNotFullCancellations())
-  const product_id = await baselinker.getProductId('warehouse_2845','8001090728951')
-  console.log(product_id)
+  //const product_id = await baselinker.getProductId('warehouse_2845','8001090728951')
+  //console.log(product_id)
   //const product_id2 = await baselinker.getProductIdForInventory('2043','9111201920118')
   //console.log(product_id2)
-  //const product_data= await baselinker.getProductIdData('2054','8001090728951')
+  //const product_data= await baselinker.getProductIdData('25092','5902216909700')
   //console.log(product_data)
   //const product_data= await baselinker.getProductDataforInventory('2043', product_id2)
   //console.log(product_data)
   //const outlets=await outlet.loadOutletFromDatabase()
   //console.log(await outlets[0].found_data)
   //console.log(await baselinker.changeProductQuantityForDomyslny('1029628553', 3))
-
+  //console.log(await baselinker.getExternalStorageProductData("shop_25092", ['nukfc-018']))
   //console.log(await baselinker.checkIfProductIsInDomyslny(8809716070657, 'OUTLET'))
   //const actualOutletProduct=await outlet.loadOutletFromDatabase()
 
   //console.log(actualOutletProduct)
   
-  //await outlet.addOutletToSystem()
+  await outlet.addOutletToSystem()
 
   //console.log(await baselinker.addNewProduct(actualOutletProduct))
 

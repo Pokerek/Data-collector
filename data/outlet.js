@@ -159,11 +159,20 @@ const outlet={
       }
     }
 
+    let iteration=1
+
     for(let product of Outlet_products)
     {
       product.found_data=await this.getOutletProductFoundData(product)
+
+      if(product.found_data==false)
+      {
+        product.found_data=await this.tryExternalStorage(product)
+      }
       
       await this.create(product)
+      console.log("Dodano "+ iteration +" z "+Outlet_products.length+"produktów.")
+      iteration++
     }
 
     console.log('Wszystkie produkty zostały dodane do bazy danych outletu.')
@@ -193,7 +202,6 @@ const outlet={
       }
       else
       {
-        console.log(`Nie można znaleźć product data dla produktu ${Outlet_product.name} wprowadź go do outletu ręczne`)
         return false
       }
       
@@ -212,15 +220,36 @@ const outlet={
         }
         else
         {
-          console.log(`Nie można znaleźć product data dla produktu ${Outlet_product.name} wprowadź go do outletu ręczne`)
           return false
         }
         
       }
       else
       {  
-        console.log(`Nie można znaleźć product id dla produktu ${Outlet_product.name}, wprowadź go do outletu ręczne`)
         return false
+      }
+    }
+    
+  },
+
+  async tryExternalStorage(Outlet_product)
+  {
+    if(Outlet_product.found_data==false)
+    {
+      let product_id = await baselinker.getExternalStorageProductId(Outlet_product.storage_full_id, Outlet_product.ean, Outlet_product.sku)
+      
+      if(product_id!=false)
+      {
+        const product_data= await baselinker.getExternalStorageProductData(Outlet_product.storage_full_id, product_id);
+        if(product_data!=false)
+        {
+          return product_data
+        }
+        else
+        {
+          return false
+        }
+        
       }
     }
     
@@ -311,34 +340,52 @@ const outlet={
 
     async actualizeQuantityInDatabaseProduct(database_id, newquantity)
     {
-      await Outlet.findOneAndUpdate({ database_id:database_id }, { quantity: newquantity });
+      await Outlet.findOneAndUpdate({ _id:database_id}, { quantity: newquantity });
     },  
 
     async matchAddedIntoSystem(database_id)
     {
-      await Outlet.findOneAndUpdate({ database_id:database_id }, { added_into_system: true });
+      await Outlet.findOneAndUpdate({ _id:database_id}, { added_into_system: true });
     },
 
     async addOutletToSystem()
     {
       const actualOutlet=await this.loadOutletFromDatabase()
-      
+      let added=[]
+      let errors=[]
+      let iteration=1
+
       for(let outletproduct of actualOutlet)
       {
+        console.log('Dodawanie '+iteration+' z '+ actualOutlet.length + ' produktów do Outletu')
         if(outletproduct.added_into_system!=true)
         {
           if(outletproduct.found_data!=false && outletproduct.found_data!=undefined)
           {
-            console.log(await baselinker.addProductToSystem(outletproduct))
-            await this.matchAddedIntoSystem(outletproduct._id)
+            let baselinkerOutput=await baselinker.addProductToSystem(outletproduct)
+            if(typeof baselinkerOutput == 'number')
+            {
+              added.push([outletproduct.name, outletproduct.ean, baselinkerOutput])
+            }
+            else
+            {
+              errors.push([outletproduct.name, outletproduct.ean, outletproduct._id])
+            }
+            await this.matchAddedIntoSystem((outletproduct._id).toString().replaceAll('new ',''))
           }
           else
           {
-            console.log(`brak danych do wprowadzenia produktu ${outletproduct.name}, wprowadź ręcznie`)
+            errors.push([outletproduct.name, outletproduct.ean, outletproduct._id])
+            await this.matchAddedIntoSystem((outletproduct._id).toString().replaceAll('new ',''))
           }
           
         }
+        iteration++;
       }
+      console.log('Dodano z sukcesem '+ added.length +' z '+ actualOutlet.length +' produktów, co daje '+ ((added.length*100/actualOutlet.length).toFixed(2)) +'% skuteczności, są to produkty:')
+      console.log(added)
+      console.log('nie udało się dodać '+ errors.length +' z '+ actualOutlet.length +' produktów, poniższe produkty dodaj ręcznie:\n')
+      console.log(errors)
     },  
 
     async removeSold()

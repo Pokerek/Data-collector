@@ -132,12 +132,16 @@ const baselinker = {
         'parameters':`{"inventory_id":+"${inventoryId}","filter_ean":+"${ean}"}`
       }).toString().replaceAll('%2B','+')
     }
-    else
+    else if(sku!='')
     {
       info = new URLSearchParams({
         'method':'getInventoryProductsList',
-        'parameters':`{"inventory_id":+"${inventoryId}","filter_sku":+"${ean}"}`
+        'parameters':`{"inventory_id":+"${inventoryId}","filter_sku":+"${sku}"}`
       }).toString().replaceAll('%2B','+')
+    }
+    else
+    {
+      return false
     }
 
     try{
@@ -151,10 +155,85 @@ const baselinker = {
           
       });
       console.log('Product ID by inventory found.');
-      return [Object.keys(load.data.products[Object.keys(load.data.products)[0]].stock)[0],load.data.products[Object.keys(load.data.products)[0]].id]
+      return load.data//[Object.keys(load.data.products[Object.keys(load.data.products)[0]].stock)[0],load.data.products[Object.keys(load.data.products)[0]].id]
     } catch(err) {
         console.log('Looking for product ID by inventory failed.');
-        return false
+        return err
+    }
+  },
+
+  async getExternalStorageProductId(inventoryId, ean, sku)
+  {
+    let info='';
+    if(ean!='')
+    {
+      info = new URLSearchParams({
+        'method':'getExternalStorageProductsList',
+        'parameters':`{"storage_id":+"${inventoryId}","filter_ean":+"${ean}"}`
+      }).toString().replaceAll('%2B','+')
+    }
+    else if(sku!='')
+    {
+      info = new URLSearchParams({
+        'method':'getExternalStorageProductsList',
+        'parameters':`{"storage_id":+"${inventoryId}","filter_sku":+"${sku}"}`
+      }).toString().replaceAll('%2B','+')
+    }
+    else
+    {
+      return false
+    }
+
+    try{
+      const load = await axios({
+          method: 'post',
+          url:'https://api.baselinker.com/connector.php',
+          headers:{
+          'X-BLToken': token,
+          },
+          data:info,
+          
+      });
+      console.log('Product ID by external storage found.');
+      return [load.data.products[0].product_id]
+    } catch(err) {
+        console.log('Looking for product ID by external storage failed.');
+        return err
+    }
+  },
+
+  async getExternalStorageProductData(storageId, productsIdArr)
+  {
+    const info = new URLSearchParams({
+        'method':'getExternalStorageProductsData',
+        'parameters':JSON.stringify({
+          "storage_id": storageId,
+          "products": productsIdArr}).replaceAll(':',':+')
+    }).toString().replaceAll('%2B','+')
+
+    try{
+      const load = await axios({
+          method: 'post',
+          url:'https://api.baselinker.com/connector.php',
+          headers:{
+          'X-BLToken': token,
+          },
+          data:info,
+          
+      });
+
+      let products=[]
+      for(let product of Object.keys(load.data.products)) {
+        products.push(load.data.products[product])
+      }
+
+      console.log('Product data by external storage found.');
+
+      return products[0]
+
+    } catch(err) {
+      console.log('Looking for product data by external storage failed.');
+      return false
     }
   },
 
@@ -467,7 +546,24 @@ const baselinker = {
     {
       featuresPreparation[array[0]]=array[1]
     }
-    
+
+    let price=0
+
+    switch(outletproduct.price.sell.brutto)
+    {
+      case outletproduct.price.sell.brutto<=50:
+        price=outletproduct.price.sell.brutto*0,7;
+        break;
+      case outletproduct.price.sell.brutto<=100:
+        price=outletproduct.price.sell.brutto*0,8;
+        break;
+      case outletproduct.price.sell.brutto>100:
+        price=outletproduct.price.sell.brutto*0,9;
+        break;
+      default:
+        price=outletproduct.price.sell.brutto;
+        break;
+    }
     
     
     
@@ -482,7 +578,7 @@ const baselinker = {
           "weight": outletproduct.weight,
           "category_id": categoryId,
           "prices": {
-              "351": 0
+              "351": price
           },
           "stock": {
               "bl_555": outletproduct.quantity,
@@ -513,11 +609,11 @@ const baselinker = {
 
     if(load.data.status=='SUCCESS')
     {
-      return `Product was added to catalogue Domyślny on id ${load.data.product_id}.`
+      return load.data.product_id
     }
     else
     {
-      return `Product add function failed because of ${load.data.error_code}.`
+      return load.data.error_code
     }
     
     } catch(err) {
@@ -533,15 +629,15 @@ const baselinker = {
 
     if(checkDomyslny!=false && checkDomyslny.product_id!=undefined)
     {
-      let newquantity=checkDomyslny.stock.bl_555 + product.quantity
+      let newquantity=checkDomyslny.stock['bl_555']  + product.quantity
       this.changeProductQuantityForDomyslny(checkDomyslny.product_id, newquantity)
       return `Produktowi ${checkDomyslny.product_id} w katalogu DOMYŚLNY zmieniono stan na ${newquantity} pod wpływem anulacji.`
     }
-    else if(checkFreestore!=false)
+    else if(checkFreestore!=false && checkFreestore.product_id!=undefined)
     {
-      let newquantity=checkFreestore.stock.bl_555 + product.quantity
+      let newquantity=checkFreestore.stock['bl_555'] + product.quantity
       this.changeProductQuantityForFreestore(checkFreestore.product_id, newquantity)
-      return `Produktowi ${checkDomyslny.product_id} w katalogu FREESTORE zmieniono stan na ${newquantity} pod wpływem anulacji.`
+      return `Produktowi ${checkFreestore.product_id} w katalogu FREESTORE zmieniono stan na ${newquantity} pod wpływem anulacji.`
     }
     else 
     {

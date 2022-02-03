@@ -187,7 +187,7 @@ const orders = {
 
         if(order.admin_comments.includes('zwrot z dostawą'))
         {
-          await Order.findOneAndUpdate({ _id }, { delivery_price_returned: true });
+          await Order.findOneAndUpdate({ _id:order._id }, { delivery_price_returned: true });
         }
       }
     }

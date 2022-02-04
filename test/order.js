@@ -1,17 +1,18 @@
 const examples = require('./examples')
 const orders = require('../scripts/products/orders')
 const prices = require('../scripts/prices/prices')
+const { convertData } = require('../scripts/baselinker/baselinker')
 
 const time = 86400 * 7
 const downloadOrders = async (year,month,day,period = 1) => {
   for (let i = 0; i < period; i++) {
-    console.log(`Data: ${year}-${month}-${day}`)
+    console.log(`Data: ${year}-${month}-${day + i}`)
     await orders.updateFromData(year,month,day + i)
     console.log(`-----------------------------------------`)
   }
 }
 
-downloadOrders(2022,01,30,1) // (FROM, TO, month, year)
+downloadOrders(2022,01,01,30) // (YEAR, MONTH, DAY, PERIOD)
 
 const testingAll = async () => {
   const start = new Date()
@@ -50,6 +51,12 @@ const testingSingle = async (storageName) => {
   console.log(`Execution time for ${storageName}: ${end}s`)
 }
 
+const zeroPrice = async (year,month,day) => {
+  await orders.updatePrice(year,month,day)
+}
+
+//zeroPrice(2022,01,30)
+
 //testingAll()
 
-//testingSingle('TELFORCEONE')
+//testingSingle('K2')

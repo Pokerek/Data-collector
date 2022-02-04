@@ -35,9 +35,10 @@ const wholesalers = {
         typeSearch: ['sku','ean','name'],
         priceOptions: {
             netto: true,
-            position: 'right',
-            word: 'zł'
-
+            position: {
+                left: false,
+                right:'zł'
+            }
         }
     },
     PARTNERTELE:{
@@ -75,7 +76,10 @@ const wholesalers = {
         typeSearch: ['ean','sku','name'],
         priceOptions: {
             netto: true,
-            position: false
+            position: {
+                left: false,
+                right: false
+            }
         }
     },
     EPSTRYK:{
@@ -113,9 +117,10 @@ const wholesalers = {
         typeSearch: ['ean','sku','name'],
         priceOptions: {
             netto: false,
-            position: 'right',
-            word: 'zł'
-
+            position: {
+                left: false,
+                right:'zł'
+            }
         }
     },
     DMTRADE:{
@@ -153,7 +158,10 @@ const wholesalers = {
         typeSearch: ['sku','ean','name'],
         priceOptions: {
             netto: false,
-            position: false
+            position: {
+                left: false,
+                right: false
+            }
         }
     },
     GADGETMASTER:{
@@ -191,8 +199,10 @@ const wholesalers = {
         typeSearch: ['sku','ean','name'],
         priceOptions: {
             netto: true,
-            position: 'right',
-            word: 'zł'
+            position: {
+                left: false,
+                right:'zł'
+            }
         }
     },
     TAYMA:{
@@ -230,8 +240,10 @@ const wholesalers = {
         typeSearch: ['ean','sku','name'],
         priceOptions: {
             netto: true,
-            position: 'right',
-            word: 'zł'
+            position: {
+                left: false,
+                right:'zł'
+            }
         }
     },
     B2BTRADE:{
@@ -270,8 +282,10 @@ const wholesalers = {
         typeSearch: ['ean','sku','name'],
         priceOptions: {
             netto: true,
-            position: 'left',
-            word: ' '
+            position: {
+                left: ' ',
+                right: false
+            }
         }
     },
     ACTION:{
@@ -308,8 +322,10 @@ const wholesalers = {
         typeSearch: ['ean','sku','name'],
         priceOptions: {
             netto: true,
-            position: 'right',
-            word: 'PLN'
+            position: {
+                left: false,
+                right:'PLN'
+            }
         }
     },
     ABONLINE:{
@@ -347,7 +363,10 @@ const wholesalers = {
         typeSearch: ['sku','ean','name'],
         priceOptions: {
             netto: true,
-            position: false
+            position: {
+                left: false,
+                right: false
+            }
         }
     },
     BOSSOFTOYS:{
@@ -384,8 +403,10 @@ const wholesalers = {
         typeSearch: ['sku','ean','name'],
         priceOptions: {
             netto: true,
-            position: 'right',
-            word: 'PLN'
+            position: {
+                left: false,
+                right:'PLN'
+            }
         }
     },
     VIVAB2B:{
@@ -422,8 +443,10 @@ const wholesalers = {
         typeSearch: ['sku','ean','name'],
         priceOptions: {
             netto: false,
-            position: 'right',
-            word: 'zł'
+            position: {
+                left: ' ',
+                right:'zł'
+            }
         }
     },
 
@@ -461,8 +484,10 @@ const wholesalers = {
         typeSearch: ['sku','ean','name'],
         priceOptions: {
             netto: true,
-            position: 'right',
-            word: 'PLN'
+            position: {
+                left: false,
+                right:'PLN'
+            }
         }
     },
     
@@ -501,8 +526,10 @@ const wholesalers = {
         typeSearch: ['sku','ean','name'],
         priceOptions: {
             netto: false,
-            position: 'right',
-            word: 'PLN'
+            position: {
+                left: ' ',
+                right:'PLN'
+            }
         }
     },
 
@@ -540,8 +567,10 @@ const wholesalers = {
         typeSearch: ['sku','name'],
         priceOptions: {
             netto: true,
-            position: 'right',
-            word: 'zł'
+            position: {
+                left: false,
+                right:'zł'
+            }
         }
     },
 
@@ -579,7 +608,10 @@ const wholesalers = {
         typeSearch: ['sku','ean','name'],
         priceOptions: {
             netto: false,
-            position: false
+            position: {
+                left: false,
+                right: false
+            }
         }
     },
     
@@ -618,8 +650,10 @@ const wholesalers = {
         typeSearch: ['sku','ean','name'],
         priceOptions: {
             netto: false,
-            position: 'right',
-            word: 'PLN'
+            position: {
+                left: false,
+                right:'PLN'
+            }
         }
     },
 
@@ -658,8 +692,10 @@ const wholesalers = {
         typeSearch: ['sku','ean','name'],
         priceOptions: {
             netto: false,
-            position: 'right',
-            word: 'zł'
+            position: {
+                left: false,
+                right:'zł'
+            }
         }
     },
     
@@ -701,8 +737,10 @@ const wholesalers = {
         typeSearch: ['sku','name'],
         priceOptions: {
             netto: false,
-            position: 'right',
-            word: 'PLN'
+            position: {
+                left: false,
+                right:'PLN'
+            }
         }
     },
 
@@ -721,7 +759,7 @@ const wholesalers = {
         },
         selectors:{
             name:'div.productFull__name.v_center > a',
-            noFound: 'div.-column--right > div.message',
+            notFound: 'div.-column--right > div.message',
             login:'input.orderForm__textfield[name=login]',
             password:'input.orderForm__textfield[name=password]',
             price:'.productFull__quick_info > div:nth-child(4) > .productFull--price > span',
@@ -741,8 +779,10 @@ const wholesalers = {
         typeSearch: ['ean','sku','name'],
         priceOptions: {
             netto: true,
-            position: 'right',
-            word: 'ZŁ'
+            position: {
+                left: false,
+                right:'ZŁ'
+            }
         }
       },
 
@@ -761,7 +801,7 @@ const wholesalers = {
         },
         selectors:{
             name:'.col-nazwa.tw-nazwa > a',
-            noFound: '.brak_msg',
+            notFound: '.brak_msg',
             login:'#log_email',
             password:'#log_paswd',
             price:'.col-cena',
@@ -781,8 +821,10 @@ const wholesalers = {
         typeSearch: ['ean','sku','name'],
         priceOptions: {
             netto: true,
-            position: 'right',
-            word: 'zł'
+            position: {
+                left: false,
+                right:'zł'
+            }
         }
     },
 
@@ -801,7 +843,7 @@ const wholesalers = {
         },
         selectors:{
             name:'#offerTable .product-list-item a > h3',
-            noFound: '#controllerContent div > h3',
+            notFound: '#controllerContent div > h3',
             login:'#email_id',
             password:'#password_id',
             price:'#offerTable .product-list-item .abs-item-price > span',
@@ -821,8 +863,10 @@ const wholesalers = {
         typeSearch: ['sku', 'name'],
         priceOptions: {
             netto: true,
-            position: 'right',
-            word: 'zł'
+            position: {
+                left: false,
+                right:'zł'
+            }
         }
       },
     
@@ -841,7 +885,7 @@ const wholesalers = {
         },
         selectors:{
             name:'.box-body td:nth-child(2) > a',
-            noFound: '.box-success tr > td[colspan="6"]',
+            notFound: '.box-success tr > td[colspan="6"]',
             login:'#inputEmail',
             password:'#inputPassword',
             price:'div.product-show__price-value',//po wejściu do strony produktu
@@ -861,8 +905,10 @@ const wholesalers = {
         typeSearch: ['sku','ean','name'],
         priceOptions: {
             netto: true,
-            position: 'right',
-            word: 'zł'
+            position: {
+                left: false,
+                right:'zł'
+            }
         }
     },
     
@@ -881,7 +927,7 @@ const wholesalers = {
         },
         selectors:{
             name:'h2.product-name.uppercase.large-12.columns > a', 
-            noFound: '#search-results-tab-1 > div.search-results-products.search-results-left > div', 
+            notFound: '#search-results-tab-1 > div.search-results-products.search-results-left > div', 
             login:'#email',
             password:'#pass',
             price:'p.price > span',
@@ -901,8 +947,10 @@ const wholesalers = {
         typeSearch: ['sku','ean','name'],
         priceOptions: {
             netto: true,
-            position: 'right',
-            word: 'zł'
+            position: {
+                left: false,
+                right:'zł'
+            }
         }
     },
 
@@ -1031,7 +1079,7 @@ const wholesalers = {
         },
         selectors:{
             name:'.product-desc .product-name span', 
-            noFound: '.products-list-page div.col-sm-9 > .row .list-empty', 
+            notFound: '.products-list-page div.col-sm-9 > .row .list-empty', 
             login:'.logins input[name="email"]',
             password:'.logins input[name="password"]',
             price:'.product-desc .product-price > span:nth-child(1) > span',
@@ -1051,8 +1099,10 @@ const wholesalers = {
         typeSearch: ['ean','sku','name'],
         priceOptions: {
             netto: true,
-            position: 'right',
-            word: 'zł'
+            position: {
+                left: false,
+                right:'zł'
+            }
         }
     },
 

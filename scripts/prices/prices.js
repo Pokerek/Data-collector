@@ -4,25 +4,27 @@ const profit = require('./profit')
 const missedList = require('../products/missedList')
 
 const prices = {
+    productsBuffor: [],
+    localStorage: '',
     productIndex: 0,
+    productError: 0,
     errorTime: 0,
-    helpBuffor: 0,
-    async login(storage,page) {
-        await page.goto(storage.urls.login, {waitUntil: 'networkidle2'});
+    async login(page) {
+        await page.goto(this.localStorage.urls.login, {waitUntil: 'networkidle2'});
         //Before alert
-        await this.alert(storage.alerts.before,page)
+        await this.alert(this.localStorage.alerts.before,page)
         //Login
-        if(storage.selectors.preLogin) { //Pre login button
-            await page.click(storage.selectors.preLogin)
+        if(this.localStorage.selectors.preLogin) { //Pre login button
+            await page.click(this.localStorage.selectors.preLogin)
             await page.waitForTimeout(1000)
         }
-        if(storage.selectors.employee) { //Special field in login form
-            await page.type(storage.selectors.employee, storage.access.employee);
+        if(this.localStorage.selectors.employee) { //Special field in login form
+            await page.type(this.localStorage.selectors.employee, this.localStorage.access.employee);
         }
-        await page.type(storage.selectors.login, storage.access.login);
-        await page.type(storage.selectors.password, storage.access.password)
+        await page.type(this.localStorage.selectors.login, this.localStorage.access.login);
+        await page.type(this.localStorage.selectors.password, this.localStorage.access.password)
         await Promise.all([ //Login submit
-            page.click(storage.selectors.submit),
+            page.click(this.localStorage.selectors.submit),
             await Promise.race([
                 page.waitForNavigation({waitUntil: 'networkidle2'}),
                 page.waitForTimeout(10000)
@@ -30,58 +32,58 @@ const prices = {
         ])
 
         //After alert
-        await this.alert(storage.alerts.after,page)
+        await this.alert(this.localStorage.alerts.after,page)
 
-        if(storage.options.special === 'APTEL') {
+        if(this.localStorage.options.special === 'APTEL') {
             await page.evaluate(() => {
                 javascript:__doPostBack('ctl00','cookie_info_hide')
             })
             await page.waitForNavigation()
         }
     },
-    async search(storage,page,products,startIndex = 0) {
+    async search(page) {
         // Wait for search reload
-        if(storage.options.searchWait) {
+        if(this.localStorage.options.searchWait) {
             await page.waitForTimeout(500)
         }
 
         //Search
-        for(let i = startIndex; i < products.length; i++) // For each product
+        for(this.productIndex; this.productIndex < this.productsBuffor.length; this.productIndex++) // For each product
         {
-            const localProduct = products[i]; // Copy product
+            const localProduct = this.productsBuffor[this.productIndex]; // Copy product
             let notFound = true
-            for(let type of storage.typeSearch) { // Search for type
+            for(let type of this.localStorage.typeSearch) { // Search for type
                 await page.evaluate((selector) => { // Clear search field
                     document.querySelector(selector).value = ''
-                },storage.selectors.search)
-                await page.type(storage.selectors.search,localProduct[type])
+                },this.localStorage.selectors.search)
+                await page.type(this.localStorage.selectors.search,localProduct[type])
                 await page.waitForTimeout(300) // Wait after write
-                if(storage.options.special === 'APTEL') {
+                if(this.localStorage.options.special === 'APTEL') {
                     await page.goto(`http://aptel.pl/ProduktyWyszukiwanie.aspx?search=${localProduct[type]}`)
                 } else await page.keyboard.press('Enter')
                 // Wait for search reload
-                if(storage.options.searchWait) {
-                    await page.waitForTimeout(storage.options.searchWait)
+                if(this.localStorage.options.searchWait) {
+                    await page.waitForTimeout(this.localStorage.options.searchWait)
                 } else {
                     await Promise.race([ //Timeout or page load
                         page.waitForNavigation({waitUntil: 'networkidle2'}),
                         page.waitForTimeout(5000)
                     ])
                 }
-                if(storage.options.table) {
+                if(this.localStorage.options.table) {
                     const found = await page.evaluate((selector) => {
                         return document.querySelector(selector).childElementCount}, 
-                        storage.selectors.table)
+                        this.localStorage.selectors.table)
                     if (!found) continue // If not found search for next type
                 } else {
                     await Promise.race([ // Found or not
-                        page.waitForSelector(storage.selectors.name),
-                        page.waitForSelector(storage.selectors.notFound)
+                        page.waitForSelector(this.localStorage.selectors.name),
+                        page.waitForSelector(this.localStorage.selectors.notFound)
                     ])
                 }
-                if(storage.options.special === "ORNO") {
+                if(this.localStorage.options.special === "ORNO") {
                     await page.click('.box-body > table > tbody > tr > td.align-middle.text-center > a > i')
-                    await page.waitForSelector(storage.selectors.price)
+                    await page.waitForSelector(this.localStorage.selectors.price)
                 }
                 const htmlText = await page.evaluate((priceSelector,pricePos,nameSelector,nameProduct) => {
                     const priceBox = document.querySelectorAll(priceSelector)
@@ -96,10 +98,10 @@ const prices = {
                     } else {
                         return false
                     }
-                }, storage.selectors.price,storage.selectors.pricePos,storage.selectors.name,localProduct.name)
+                }, this.localStorage.selectors.price,this.localStorage.selectors.pricePos,this.localStorage.selectors.name,localProduct.name)
                 if(htmlText) {
                     let quantity = 1
-                    if(storage.options.special === 'LECHPOL') { //Quantity for lechpol
+                    if(this.localStorage.options.special === 'LECHPOL') { //Quantity for lechpol
                         quantity = await page.evaluate(() => {
                             let quantityText = document.querySelector(".qty-multiplier strong")
                             if(quantityText) {
@@ -108,16 +110,15 @@ const prices = {
                             return 1
                         })
                     }
-                    localProduct.price.buy = this.getStoragePrice(localProduct.price.buy,htmlText,localProduct.tax_rate,storage.priceOptions,quantity) // Price from storage
+                    localProduct.price.buy = this.getStoragePrice(localProduct.price.buy,htmlText,localProduct.tax_rate,this.localStorage.priceOptions,quantity) // Price from storage
                     notFound = false
                     break
                 }
-                this.positionIndex++ //Product search complete
             }
             if(notFound) {
                 missedList.add(localProduct,'Not found')
             } else {
-                products[i] = this.updateProfit(localProduct) // Profit update
+                this.productsBuffor[this.productIndex] = this.updateProfit(localProduct) // Profit update
             }
         }    
     },
@@ -142,27 +143,31 @@ const prices = {
     async addProduct() {
         //Future
     },
-    async logout(storage,page) {
+    async logout(page) {
         //Logout
-        if(storage.urls.logout) { //URL
-            await page.goto(storage.urls.logout);
-        } else if (storage.options.special === 'APTEL') { // APTEL
+        if(this.localStorage.urls.logout) { //URL
+            await page.goto(this.localStorage.urls.logout);
+        } else if (this.localStorage.options.special === 'APTEL') { // APTEL
             await page.evaluate(() => {
                 javascript:__doPostBack('ctl00$ctl00$miBeleczkaGornaNowyLayout','logout')
             })
             await page.waitForNavigation()
         } else { //Button
-            if(storage.selectors.preLogout) {
-                await page.click(storage.selectors.preLogout)
+            if(this.localStorage.selectors.preLogout) {
+                await page.click(this.localStorage.selectors.preLogout)
                 await page.waitForTimeout(200)
             }
             await page.evaluate((selector) => {
                 document.querySelector(selector).click()}, 
-                storage.selectors.logout)
+                this.localStorage.selectors.logout)
         }
     },
-    async getPrices(products, storageName,hidden = false, first = true) {
-        const storage = wholesalers[storageName]
+    async getPrices(products, storageName,hidden = false) {
+        this.localStorage = wholesalers[storageName]
+        this.productsBuffor = products
+        this.productIndex = 0
+        this.productError = 0 
+        this.errorTime = 0 
 
         const browser = await puppeteer.launch({
             headless: hidden,
@@ -173,31 +178,32 @@ const prices = {
         })
         
         const page = await browser.newPage()
-        if(first) {
-            this.productIndex = 0 // For save position in crached
-            this.errorTime = 0 // For max loop iteration after error
-        }
-        if(storage) {
-            try {
-                await this.login(storage,page)
-                await this.search(storage,page,products,this.productIndex)
-                await this.logout(storage,page)
-                console.log(`${storageName} - complete`) 
-            } catch (error) {
-                browser.close()
-                if(this.errorTime === 2) {
-                    console.error(`${storageName} - error: ${error}. Need to fix that storage.`)
-                    return products
-                } else {
-                    this.errorTime++ // Interaction for error
-                    products = await this.getPrices(products,storageName,hidden,false)
-                }
-            }
+
+        if(this.localStorage) {
+            do {
+                await this.priceLoop(page)
+            } while (this.productIndex < this.productsBuffor.length)
+            console.log(`${storageName} - search complete. Total error products: ${this.productError}`)
         } else {
             console.log(`Not found storage ${storageName}`)
         }
         browser.close()
-        return products;
+        return this.productsBuffor;
+    },
+    async priceLoop(page) {
+        try {
+            await this.login(page)
+            await this.search(page)
+            await this.logout(page)
+        } catch (error) {
+            if(this.errorTime === 2) {
+                this.errorTime = 0
+                this.productIndex++
+                this.productError++
+            } else {
+                this.errorTime++ // Interaction for error
+            }
+        }
     },
     updateProfit(product) {
         if(product.price.buy.brutto) {product.profit = profit.toProduct(product.price,product.tax_rate)}
@@ -210,13 +216,11 @@ const prices = {
         return (netto * ( 1 + tax / 100)).toFixed(place) * 1
     },
     getStoragePrice(productPrice, priceHTML, tax, options,quantity = 1){
-        switch (options.position) {
-            case 'left':
-                priceHTML = priceHTML.slice(priceHTML.indexOf(options.word) + 1)
-                break;
-            case 'right':
-                priceHTML = priceHTML.slice(0,priceHTML.indexOf(options.word)-1)
-                break;
+        if(options.position.left) {
+            priceHTML = priceHTML.slice(priceHTML.indexOf(options.position.left) + 1)
+        }
+        if(options.position.right) {
+            priceHTML = priceHTML.slice(0,priceHTML.indexOf(options.position.right)-1)
         }
         const price = priceHTML.replaceAll(',','.') * quantity
         if (options.netto) {

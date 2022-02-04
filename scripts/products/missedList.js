@@ -6,15 +6,16 @@ const missedList = {
     product.info = info
     this.bufor.push(product)
   },
-  async save() {
-    const actualDate = `${new Date().getDate()}-${new Date().getMonth()+1}-${new Date().getFullYear()}`
+  async save(name) {
+    const actualDate = new Date()
+    const fileName = `${name}-${actualDate.getDate()}-${actualDate.getMonth()+1}-${actualDate.getFullYear()}-${actualDate.getHours()}-${actualDate.getMinutes()}`
     let saveString = ''
 
     this.bufor.forEach((product) => {
       saveString += `Name: ${product.name} | SKU: ${product.sku} | EAN: ${product.ean} | Storage: ${product.storage_name} | ${product.info} \n`
     })
     
-    fs.writeFileSync(`../logs/missedList/${actualDate}.txt`, saveString)
+    fs.writeFileSync(`../logs/missedList/${fileName}.txt`, saveString)
   }
 }
 

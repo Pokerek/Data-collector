@@ -126,7 +126,7 @@ const orders = {
     let storageCount = 0
     //First init
     let data = await baselinker.getOrders(startDate)
-    let nextDate = startDate
+    let nextDate
     //Loop until load all data (Max 100 per run)
     do {
       for (let index in data) {
@@ -216,7 +216,7 @@ const orders = {
       if (nextDate < endDate) {
         data = await baselinker.getOrders(nextDate)
       }
-    } while (nextDate < endDate)
+    } while (nextDate < endDate && data.length > 0)
 
     let count = 1
     for(const storage in productsBuffor) { //Loop for storages
@@ -249,11 +249,75 @@ const orders = {
       order.profit = profit.toOrder(order)
       this.create(order) // Create new order
     })
-    missedList.save() // Generate list for not found products or error
+    missedList.save('Orders') // Generate list for not found products or error
+  },
+
+  async updatePrice(year,month,day) {
+    const date = baselinker.convertData(year, month, day)
+    const data = await orders.loadZeroFrom(date)
+    let updated = 0
+    console.log(`Orders to update price: ${data.length}`)
+    let productsBuffor = []
+    for (const index in data) {
+      data[index].products.forEach(product => {
+        if(product.price.buy.brutto === 0) {
+          const storageName = product.storage_name
+          if(productsBuffor[storageName]) { // add product to array o storage
+            if(products.testEAN(product.ean,productsBuffor[storageName]) || products.testSKU(product.sku,productsBuffor[storageName])) { //Test ean or sku
+              productsBuffor[storageName].push(product)
+            }
+          } else if (storageName !== 'OUTLET') { // create array for storage
+            productsBuffor[storageName] = []
+            productsBuffor[storageName].push(product)
+          }
+        }
+        
+      })
+    }
+    for(const storage in productsBuffor) { //Loop for storages
+      productsBuffor[storage] = await prices.getPrices(productsBuffor[storage],storage,true) //Prices load from storages
+      for(const product of productsBuffor[storage]) {
+        if(product.price.buy.brutto !== 0) {
+          const search = {
+            'products.ean': product.ean,
+            'products.sku': product.sku,
+            date_confirmed: {$gte: date},
+            'products.price.buy.brutto': 0,
+            'products.storage_name': {$ne: 'OUTLET'}
+          }
+          let dbOrder = await Order.findOne(search)
+          let safe = 0
+          while (dbOrder && safe < 5) {
+            for(const dbProduct of dbOrder.products) {
+              if(dbProduct.ean === product.ean && dbProduct.sku === product.sku) {
+                if(dbProduct.price.buy.brutto === 0) {
+                  dbProduct.price = product.price
+                  dbProduct.profit = product.profit
+                  updated++
+                }
+                break
+              }
+            }
+            await dbOrder.save()
+            dbOrder = await Order.findOne(search)
+            safe++
+          }
+          if(safe) {
+            missedList.add(product,'Infinite loop')
+          } 
+        }
+      }
+    }
+    console.log(`Orders updated: ${updated}`)
+    missedList.save('Zero')
   },
 
   async loadFromDate(start,end) {
     return await Order.find({date_add: {$gte: start, $lte: end}})
+  },
+
+  async loadZeroFrom(date) {
+    return await Order.find({date_confirmed: {$gte: date}, 'products.storage_name': {$ne: 'OUTLET'}, 'products.price.buy.brutto': 0 })
   }
 }
 

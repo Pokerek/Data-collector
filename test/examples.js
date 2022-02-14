@@ -21,28 +21,6 @@ const examples = {
       profit: 0,
       location: '',
       auction_id: 0
-    },
-    {
-      name: "Wozinsky Ring Armor pancerne hybrydowe etui pokrowiec + magnetyczny uchwyt Samsung Galaxy A51 różowy",
-      sku: "9111201919662",
-      ean: "9111201919662",
-      storage_id: 331,
-      storage_name: "HURTEL",
-      price: {
-        buy: {
-          netto: 0,
-          brutto: 0
-        },
-        sell: {
-          netto: 8.94,
-          brutto: 11
-        }
-      },
-      tax_rate: 23,
-      quantity: 1,
-      profit: 0,
-      location: '',
-      auction_id: 0
     }],
     PARTNERTELE: [{
       name: "Futerał Magneto 360 do Samsung S21 czarny",

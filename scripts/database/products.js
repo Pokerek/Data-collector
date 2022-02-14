@@ -1,28 +1,4 @@
-const mongoose = require('../database/mongoose')
-const fs = require("fs");
-
-const productSchema = new mongoose.Schema({
-  name: String,
-  sku: String,
-  ean: String,
-  storage_id: Number,
-  storage_name: String,
-  price: {
-    buy: {
-      netto: [Number],
-      brutto: [Number]
-    },
-    sell: {
-      netto: [Number],
-      brutto: [Number]
-    }
-  },
-  tax_rate: Number,
-  profit: Number,
-  lastSell: Number,
-})
-
-const Product = mongoose.model('Product', productSchema)
+const Product = require('../../models/product')
 
 const products = {
   async create (product) {
@@ -65,6 +41,9 @@ const products = {
     } else { 
       await this.create(localProduct) // Create new product
     }
+  },
+  async get(products) {
+
   },
   testEAN (productEAN, array = []) {
     return productEAN !== '' && !array.find(({ean}) => ean === productEAN)

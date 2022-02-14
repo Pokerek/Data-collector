@@ -1,4 +1,4 @@
-require('dotenv').config({path:'../.env'})
+require('dotenv').config()
 
 const wholesalers = {
     HURTEL:{
@@ -444,7 +444,7 @@ const wholesalers = {
         priceOptions: {
             netto: false,
             position: {
-                left: ' ',
+                left: false,
                 right:'zł'
             }
         }
@@ -527,7 +527,7 @@ const wholesalers = {
         priceOptions: {
             netto: false,
             position: {
-                left: ' ',
+                left: 'd',
                 right:'PLN'
             }
         }

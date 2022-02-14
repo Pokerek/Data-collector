@@ -1,7 +1,7 @@
 const wholesalers = require('./wholesalers')
 const puppeteer = require('puppeteer')
 const profit = require('./profit')
-const missedList = require('../products/missedList')
+const missedList = require('../logs/missedList')
 
 const prices = {
     productsBuffor: [],
@@ -56,6 +56,7 @@ const prices = {
                 await page.evaluate((selector) => { // Clear search field
                     document.querySelector(selector).value = ''
                 },this.localStorage.selectors.search)
+                if(localProduct[type] === '') { continue } // Empty search value
                 await page.type(this.localStorage.selectors.search,localProduct[type])
                 await page.waitForTimeout(300) // Wait after write
                 if(this.localStorage.options.special === 'APTEL') {

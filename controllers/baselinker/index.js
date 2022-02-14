@@ -1,14 +1,12 @@
 const axios = require('axios')
-require('dotenv').config({path:'../.env'})
+require('dotenv').config()
 
 
 const baselinker = {
   token: process.env.BL_TOKEN || '',
-  async getOrders(date) {
-    const info = new URLSearchParams({
-      'method':'getOrders',
-      'parameters':`{"date_confirmed_from":+${date}}`
-    }).toString().replaceAll('%2B','+');
+  async getOrders(date,parameters = {
+    date_confirmed_from: date
+  }) {
     try{
       const load = await axios({
         method: 'post',
@@ -16,11 +14,12 @@ const baselinker = {
         headers:{
         'X-BLToken': this.token,
         },
-        data:info,   
+        data: new URLSearchParams({
+          method: 'getOrders',
+          parameters: JSON.stringify(parameters).replaceAll(':',':+')
+        }).toString().replaceAll('%2B','+'),   
       })
-
-      return load.data.orders
-      
+      return load.data.orders     
     } catch(err) {
         console.log(err.response);
         return false
@@ -29,6 +28,14 @@ const baselinker = {
   
   convertData(year, month, day, hours = 0, minutes = 0, seconds = 0){ 
     return new Date(year, month-1, day, hours, minutes, seconds).getTime()/1000
+  },
+  prepareParams(params) {
+    let text = '{'
+    for(const param in params){
+      text += `"${param}":"${params[param]}",`
+    }
+    text += '}'
+    return text
   },
 
   async getStorageList() {
@@ -58,7 +65,6 @@ const baselinker = {
       'method':'getOrderStatusList',
       'parameters':'{}'
     }).toString().replaceAll('%2B','+');
-
     try{
       const load = await axios({
         method: 'post',

@@ -1,13 +1,5 @@
-const mongoose = require('./mongoose')
-const baselinker = require('../baselinker/baselinker')
-
-const storgeSchema = new mongoose.Schema({
-  storage_id: String,
-  name: String,
-  type: String
-})
-
-const Storage = mongoose.model('Storage', storgeSchema)
+const Storage = require('../../models/storage') 
+const baselinker = require('../../controllers/baselinker')
 
 const storages = {
   async create(data) {

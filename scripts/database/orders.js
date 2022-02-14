@@ -1,108 +1,30 @@
-const mongoose = require('../database/mongoose')
-const baselinker = require('../baselinker/baselinker')
+const baselinker = require('../../controllers/baselinker')
 const products = require('./products')
-const storages = require('../database/storages')
-const prices = require('../prices/prices')
+const storages = require('./storages')
+const prices = require('../prices')
 const profit = require('../prices/profit')
-const missedList = require('./missedList')
-
-const orderSchema = new mongoose.Schema({
-  order_id: Number,
-  status_id: Number,
-  shop_order_id: Number,
-  date_add: Number,
-	date_confirmed: Number,
-	date_in_status: Number,
-	admin_comments: String,
-	delivery: {
-    method: String,
-    price: Number,
-    cost: Number,
-    returned: Boolean,
-    smart: Boolean
-  },
-  profit: Number,
-  cancelled: Boolean,
-  ordered: Boolean,
-  delivery_price_returned: Boolean,
-	products: [{
-			name: String,
-			sku: String,
-			ean: String,
-      storage_id: Number,
-      storage: String,
-			storage_name: String,
-      price: {
-        buy: {
-          netto: Number,
-          brutto: Number
-        },
-        sell: {
-          netto: Number,
-          brutto: Number
-        }
-      },
-			tax_rate: Number,
-			quantity: {
-        actual: Number,
-        returned: Number
-      },
-      profit: Number,
-			location: String,
-			order_id: String,
-      auction_id: String,
-      source_id:String
-  }]
-})
-
-const Order = mongoose.model('Order', orderSchema)
+const missedList = require('../logs/missedList')
+const Order = require('../../models/order')
+const statuses = require('./statuses')
 
 const orders = {
-  
   async create(data) {
     const order = new Order(data)
     await order.save()
   },
-  convert(order) {
-    const productsArr = []
-    order.products.forEach((product) => {
-      productsArr.push({
-        name: product.name,
-        sku: product.sku,
-        ean: product.ean,
-        storage_id: product.storage_id,
-        storage: product.storage,
-        storage_name: '',
-        price: {
-          buy: {
-            netto: 0,
-            brutto: 0
-          },
-          sell: {
-            netto: prices.nettoPrice(product.price_brutto,product.tax_rate),
-            brutto: product.price_brutto
-          }
-        },
-        tax_rate: product.tax_rate,
-        quantity: {
-          actual: product.quantity,
-          returned: 0
-        },
-        profit: 0,
-        location: product.location,
-        order_id: order.order_id,
-        auction_id: product.auction_id || false,
-        source_id: order.order_source_id
-      })
-    })
+  async convert(order) {
     return {
       order_id: order.order_id,
-      status_id: order.order_status_id,
-      shop_order_id: order.shop_order_id,
-      date_add: order.date_add,
-      date_confirmed: order.date_confirmed,
-      date_in_status: order.date_in_status,
       admin_comments: order.admin_comments,
+      profit: 0,
+      cancelled: false,
+      ordered: false,
+      status: await statuses.get(order.status_id),
+      date: {
+        add: order.date_add,
+        confirmed: order.date_confirmed,
+        status: order.date_in_status
+      },
       delivery: {
         method: order.delivery_method,
         price: order.delivery_price,
@@ -110,14 +32,10 @@ const orders = {
         returned: false,
         smart: (order.delivery_price == 0 || order.delivery_price == 3.99)
       },
-      profit: 0,
-      cancelled: false,
-      ordered: false,
-      products: productsArr
+      products: await products.get(order.products)
     }
   },
-  
-  async updateFromData (year, month, day, period = 1) {
+  async updateFromData (year, month, day, period = 1,hidden = true) {
     const startDate = baselinker.convertData(year, month, day),
           endDate = baselinker.convertData(year,month,day + period,0,0,-1),
           ordersBuffor = []
@@ -222,7 +140,7 @@ const orders = {
     for(const storage in productsBuffor) { //Loop for storages
       console.log(`Progress ${count} / ${storageCount} > ${storage} <`)
       if(1) {
-        productsBuffor[storage] = await prices.getPrices(productsBuffor[storage],storage,true) //Prices load from storages
+        productsBuffor[storage] = await prices.getPrices(productsBuffor[storage],storage,hidden) //Prices load from storages
       }
       for(const product of productsBuffor[storage]) {
         products.update(product) 
@@ -254,7 +172,7 @@ const orders = {
 
   async updatePrice(year,month,day) {
     const date = baselinker.convertData(year, month, day)
-    const data = await orders.loadZeroFrom(date)
+    const data = await this.loadZeroFrom(date)
     let updated = 0
     console.log(`Orders to update price: ${data.length}`)
     let productsBuffor = []

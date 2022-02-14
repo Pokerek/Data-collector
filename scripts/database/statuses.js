@@ -1,15 +1,7 @@
-const mongoose = require('./mongoose')
-const baselinker = require('../baselinker/baselinker')
+const Status = require('../../models/status')
+const baselinker = require('../../controllers/baselinker')
 
-const statusSchema = new mongoose.Schema({
-  id: String,
-  name: String
-})
-
-const Status = mongoose.model('Status', statusSchema)
-
-
-const status = {
+const statuses = {
   async create(data) {
     const status = new Status(data)
     await status.save()
@@ -20,7 +12,7 @@ const status = {
       name: status.name
     }
   },
-  async update () {
+  async update() {
     const data = await baselinker.getOrderStatusList()
     for (let index in data) {
       const status = await Status.findOne({id: (data[index]).id})
@@ -34,10 +26,18 @@ const status = {
       }
     }
     console.log(`Statuses updated.`)
+  },
+  async get(status_id) {
+    let status = await Status.findOne({id: status_id})
+    if(!status) {
+      await this.update()
+      status = await Status.findOne({id: status_id})
+    }
+    return status._id
   }
 }
 
-module.exports = status
+module.exports = statuses
 
 
 

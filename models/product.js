@@ -6,17 +6,16 @@ const Product = mongoose.model('Product', new mongoose.Schema({
   ean: String,
   tax_rate: Number,
   lastSell: Number,
-  price: {
+  price: [{
     buy: {
-      netto: [Number],
-      brutto: [Number]
+      netto: Number,
+      brutto: Number
     },
     sell: {
-      netto: [Number],
-      brutto: [Number]
-    }
-  },
-  profit: [Number],
+      netto: Number,
+      brutto: Number
+    },
+  }],
   storage: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Storage'

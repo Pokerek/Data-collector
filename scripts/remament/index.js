@@ -8,6 +8,7 @@ const remament = {
   async create(data) {
     const remament = new Remament(data)
     await remament.save()
+    return remament
   },
   convert(remament) {
     return {
@@ -89,8 +90,8 @@ const remament = {
       console.log(`${storageName} - clear`)
     }
   },
-  async manual(storageName) {
-    let remaments = await this.get(storageName)
+  async manual(storageName = 'ALL') {
+    let remaments = (storageName === 'ALL') ? await this.getAllZero() : await this.get(storageName)
     let max = remaments.length, position = 1
     if(remaments.length) {
       for (const remament of remaments) {
@@ -117,6 +118,8 @@ const remament = {
         position++
         await this.update(remament)
       }
+    } else {
+      console.log(`${storageName} - all products found.`)
     }
   },
   async killDouble() {
@@ -127,6 +130,20 @@ const remament = {
         await Remament.findByIdAndRemove({_id: remament._id})
       }
     }
+  },
+  async toExcel(excel) {
+    let saveString = 'EAN,CENA\n'
+    for(const ean of excel) {
+      const remament = await Remament.findOne({ean: ean.toString()})
+      saveString += `${ean},${remament.price.buy.netto}\n` 
+    }
+    return saveString
+  },
+  async getAll() {
+    return await Remament.find()
+  },
+  async getAllZero() {
+    return await Remament.find({'price.buy.netto': {$lte: 0}})
   }
 }
 

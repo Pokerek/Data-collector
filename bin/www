@@ -9,6 +9,7 @@ var app = require('../app');
 var debug = require('debug')('silesia-finance:server');
 var http = require('http');
 const mongoose = require('mongoose')
+const schedule = require('../controllers/schedule')
 require('dotenv').config()
 
 /**
@@ -19,12 +20,18 @@ require('dotenv').config()
  const localUrl = 'mongodb://localhost/silesiaDB'
 
 const connect = async () => {
-  await mongoose.connect(localUrl)
+  await mongoose.connect(url)
   .then(() => console.log('Connect to DB.'))
   .catch(err => console.error('Could not connect to MongoDB...', err))
 }
 
 connect()
+
+/**
+ * Schedule start 
+ */
+
+ schedule()
 
 /**
  * Get port from environment and store in Express.

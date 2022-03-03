@@ -4,9 +4,29 @@ require('dotenv').config()
 
 const baselinker = {
   token: process.env.BL_TOKEN || '',
+  stoper: {
+    time: new Date().getTime() / 1000,
+    request: 1
+  },
+  delay(t, v) {
+    return new Promise(function(resolve) { 
+        setTimeout(resolve.bind(null, v), t)
+    })
+ },
+  async blocker() {
+    if(this.stoper.request > 50) { // wait
+      const date = new Date().getTime() / 1000
+      const breakTime = 60 - (date - this.stoper.time)
+      if(breakTime > 0) await this.delay(breakTime * 1000)
+      this.stoper.time = new Date().getTime() / 1000
+      this.stoper.request = 0
+    } 
+    this.stoper.request++
+  },
   async getOrders(date,parameters = {
     date_confirmed_from: date
   }) {
+    await this.blocker()
     try{
       const load = await axios({
         method: 'post',
@@ -25,10 +45,32 @@ const baselinker = {
         return false
     }
   },
+
+  async getInventories() {
+    await this.blocker()
+    try{
+      const load = await axios({
+        method: 'post',
+        url:'https://api.baselinker.com/connector.php',
+        headers:{
+        'X-BLToken': this.token,
+        },
+        data: new URLSearchParams({
+          method: 'getInventories',
+          parameters: JSON.stringify({}).replaceAll(':',':+')
+        }).toString().replaceAll('%2B','+'),   
+      })
+      return load.data.inventories     
+    } catch(err) {
+        console.log(err.response);
+        return false
+    }
+  },
   
   convertData(year, month, day, hours = 0, minutes = 0, seconds = 0){ 
     return new Date(year, month-1, day, hours, minutes, seconds).getTime()/1000
   },
+
   prepareParams(params) {
     let text = '{'
     for(const param in params){
@@ -38,12 +80,52 @@ const baselinker = {
     return text
   },
 
+  async setOrderStatus(orderID,statusID) {
+    await this.blocker()
+    try{
+      await axios({
+        method: 'post',
+        url:'https://api.baselinker.com/connector.php',
+        headers:{
+        'X-BLToken': this.token,
+        },
+        data: new URLSearchParams({
+          method: 'setOrderStatus',
+          parameters: JSON.stringify({order_id: orderID, status_id: statusID}).replaceAll(':',':+')
+        }).toString().replaceAll('%2B','+'),   
+      })    
+    } catch(err) {
+        console.log(err.response);
+        return false
+    }
+  },
+
+  async setOrderProductFields(orderID,productID,location) {
+    await this.blocker()
+    try{
+      await axios({
+        method: 'post',
+        url:'https://api.baselinker.com/connector.php',
+        headers:{
+        'X-BLToken': this.token,
+        },
+        data: new URLSearchParams({
+          method: 'setOrderProductFields',
+          parameters: JSON.stringify({order_id: orderID, order_product_id: productID, location: location}).replaceAll(':',':+')
+        }).toString().replaceAll('%2B','+'),   
+      })   
+    } catch(err) {
+        console.log(err.response);
+        return false
+    }
+  },
+
   async getStorageList() {
     const info = new URLSearchParams({
       'method':'getExternalStoragesList',
       'parameters':'{}'
     }).toString().replaceAll('%2B','+');
-
+    await this.blocker()
     try{
       const load = await axios({
         method: 'post',
@@ -65,6 +147,7 @@ const baselinker = {
       'method':'getOrderStatusList',
       'parameters':'{}'
     }).toString().replaceAll('%2B','+');
+    await this.blocker()
     try{
       const load = await axios({
         method: 'post',
@@ -134,93 +217,6 @@ const baselinker = {
     } catch(err) {
       console.log(err.response);
       return false
-    }
-  },
-
-  async getCancellations(data)
-  {
-
-    const info = new URLSearchParams({
-        'method':'getOrders',
-        'parameters':`{"status_id":+${289429},"date_from":+${data}}`
-    }).toString().replaceAll('%2B','+')
-
-    try{
-      const load = await axios({
-          method: 'post',
-          url:'https://api.baselinker.com/connector.php',
-          headers:{
-          'X-BLToken': this.token,
-          },
-          data:info,
-          
-      });
-      let cancellationsId=[]
-      for(let order of load.data.orders) {
-        cancellationsId.push(order.order_id)
-      }
-
-      return cancellationsId
-    } catch(err) {
-        console.log(err.response);
-        return false
-    }
-  },
-
-  async getNotFullCancellations()
-  {
-    const info = new URLSearchParams({
-      'method':'getOrders',
-      'parameters':`{"status_id":+${297842},"get_unconfirmed_orders":+true}`
-    }).toString().replaceAll('%2B','+')
-
-    try{
-      const load = await axios({
-        method: 'post',
-        url:'https://api.baselinker.com/connector.php',
-        headers:{
-        'X-BLToken': this.token,
-        },
-        data:info,
-        
-    });
-    
-    return load.data.orders[load.data.orders.length-1]
-    } catch(err) {
-        console.log('Błąd w pobieraniu niepełnych zamówień');
-        return false
-    }
-  },
-
-  async getNotFullCancellationsLoss(year, month, day)
-  {
-    const info = new URLSearchParams({
-      'method':'getOrders',
-      'parameters':`{"status_id":+${297842},"get_unconfirmed_orders":+true}`
-    }).toString().replaceAll('%2B','+')
-
-    try{
-      const load = await axios({
-        method: 'post',
-        url:'https://api.baselinker.com/connector.php',
-        headers:{
-        'X-BLToken': this.token,
-        },
-        data:info,
-        
-    });
-    
-    let loss=0
-    for(let product of load.data.orders[load.data.orders.length-1].products)
-    {
-      if(product.attributes==`${day}.${month}.${year}`.replaceAll(' ',''))
-      {
-        loss+=product.price_brutto
-      }
-    }
-    } catch(err) {
-        console.log(err.response);
-        return false
     }
   },
 

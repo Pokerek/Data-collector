@@ -2,10 +2,12 @@ const mongoose = require('mongoose')
 
 const Order = mongoose.model('Order', new mongoose.Schema({
   order_id: Number,
-  admin_comments: String,
+  comments: String,
   profit: Number,
   cancelled: Boolean,
-  ordered: Boolean,
+  notOrdered: Boolean,
+  source: String,
+  company: String,
   status: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Status'
@@ -22,27 +24,32 @@ const Order = mongoose.model('Order', new mongoose.Schema({
     returned: Boolean,
     smart: Boolean
   },
-  products: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Product',
-    price: {
-      buy: {
-        netto: Number,
-        brutto: Number
+  products: [
+    new mongoose.Schema({
+      price: {
+        buy: {
+          netto: Number,
+          brutto: Number
+        },
+        sell: {
+          netto: Number,
+          brutto: Number
+        }
       },
-      sell: {
-        netto: Number,
-        brutto: Number
+      quantity: {
+        actual: Number,
+        returned: Number
+      },
+      profit: Number,
+      location: String,
+      auction_id: String,
+      bl_id: Number,
+      product: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Product',   
       }
-    },
-    quantity: {
-      actual: Number,
-      returned: Number
-    },
-    profit: Number,
-		location: String,
-    auction_id: String,
-  }],
+    }
+  )]
 }))
 
 module.exports = Order

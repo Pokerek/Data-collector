@@ -1,7 +1,7 @@
 const wholesalers = require('./wholesalers')
 const puppeteer = require('puppeteer')
 const profit = require('./profit')
-const missedList = require('../logs/missedList')
+const missedList = require('../../scripts/logs/missedList')
 
 const prices = {
     productsBuffor: [],
@@ -111,7 +111,7 @@ const prices = {
                             return 1
                         })
                     }
-                    localProduct.price.buy = this.getStoragePrice(localProduct.price.buy,htmlText,localProduct.tax_rate,this.localStorage.priceOptions,quantity) // Price from storage
+                    localProduct.price[0].buy = this.getStoragePrice(localProduct.price[0].buy,htmlText,localProduct.tax_rate,this.localStorage.priceOptions,quantity) // Price from storage
                     notFound = false
                     break
                 }
@@ -207,7 +207,7 @@ const prices = {
         }
     },
     updateProfit(product) {
-        if(product.price.buy.brutto) {product.profit = profit.toProduct(product.price,product.tax_rate)}
+        if(product.price[0].buy.brutto) {product.profit = profit.toProduct(product.price[0],product.tax_rate)}
         return product
     },
     nettoPrice(brutto,tax, place = 2) {

@@ -1,18 +1,19 @@
 const examples = require('./examples')
-const orders = require('../scripts/database/orders')
-const prices = require('../scripts/prices')
+const orders = require('../controllers/database/orders')
+const prices = require('../controllers/prices')
 const { convertData } = require('../controllers/baselinker')
 
 const time = 86400 * 7
 const downloadOrders = async (year,month,day,period = 1) => {
   for (let i = 0; i < period; i++) {
-    console.log(`Data: ${year}-${month}-${day + i}`)
+    const date = new Date (convertData(year, month, day + i) * 1000)
+    console.log(`Data: ${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`)
     await orders.updateFromData(year,month,day + i,1)
     console.log(`-----------------------------------------`)
   }
 }
 
-//downloadOrders(2022,01,01) // (YEAR, MONTH, DAY, PERIOD)
+downloadOrders(2022,02,1,30) // (YEAR, MONTH, DAY, PERIOD)
 
 const testingAll = async () => {
   const start = new Date()
@@ -56,6 +57,12 @@ const testingSingle = async (storageName) => {
 const zeroPrice = async (year,month,day) => {
   await orders.updatePrice(year,month,day)
 }
+
+const test = async () => {
+  orders.savePrices()
+}
+
+//test()
 
 //zeroPrice(2022,01,01)
 

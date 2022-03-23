@@ -126,7 +126,11 @@ const orders = {
       }
     }
   },
-
+  async deleteFrom(year,month,day,period = 1) {
+    const start = baselinker.convertData(year, month, day)
+    const end = baselinker.convertData(year,month,day + period,0,0,-1)
+    await Order.deleteMany({$and: [{'date.add': {$gte: start}},{'date.add': {$lt: end}}]})
+  },
   /*async updatePrice(year,month,day) {
     const date = baselinker.convertData(year, month, day)
     const data = await this.loadZeroFrom(date)
@@ -187,8 +191,6 @@ const orders = {
     missedList.save('Zero')
   },*/
 
-
-
   async loadFromDate(start,end) {
     return await Order.find({date_add: {$gte: start, $lte: end}})
   },
@@ -211,6 +213,8 @@ const orders = {
       return 'ALLEGRO'
     } else if (source.includes('emag')) {
       return 'EMAG'
+    } else if (source.includes('erli')) {
+      return 'ERLI'
     } else {
       return source
     }

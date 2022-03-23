@@ -12,7 +12,7 @@ router.get('/generate', async function(req, res, next) {
   const actualDate = `${new Date().getDate()}-${new Date().getMonth()+1}-${new Date().getFullYear()}`
   const path = `./logs/lists/${actualDate}.txt`
   if(!await checkFileExists(path)) {
-    cart.create()
+    if(!cart.checkStatus()) cart.create()
     res.send('List is preparing. Please wait.')
   } else res.download(path)
 })

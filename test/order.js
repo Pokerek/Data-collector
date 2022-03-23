@@ -13,7 +13,13 @@ const downloadOrders = async (year,month,day,period = 1) => {
   }
 }
 
-downloadOrders(2022,02,1,30) // (YEAR, MONTH, DAY, PERIOD)
+const today = {
+  year: new Date().getFullYear(),
+  month: new Date().getMonth() + 1,
+  day: new Date().getDate()
+}
+
+//downloadOrders(2022,02,1,30) // (YEAR, MONTH, DAY, PERIOD)
 
 const testingAll = async () => {
   const start = new Date()
@@ -59,10 +65,10 @@ const zeroPrice = async (year,month,day) => {
 }
 
 const test = async () => {
-  orders.savePrices()
+  await downloadOrders(today.year,today.month,today.day - 30,30)
 }
 
-//test()
+test()
 
 //zeroPrice(2022,01,01)
 

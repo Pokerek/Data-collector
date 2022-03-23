@@ -9,6 +9,7 @@ const statuses = require('../statuses')
 const cart = {
   orders: [],
   products: [],
+  inProgress: false,
   async loadOrders() {
     const orders = await Order.find({comments: /.*NOWE.*/}).populate('status','name -_id')
     const newStatus = await statuses.getNewArray()
@@ -60,11 +61,13 @@ const cart = {
       }
       await dbOrder.save()
     }
+    console.log(`>> Baselinker updated! <<`)
   },
   async create() {
     //clear all
     this.orders = []
     this.products = []
+    this.inProgress = true
     let finalString = ''
     const today = {
       year: new Date().getFullYear(),
@@ -86,7 +89,7 @@ const cart = {
       for(const company in this.products[source]) {
         finalString += ` ${company} ---------\n\n`
         for(const storage in this.products[source][company]) {
-          if(storage.includes('OUTLET')) continue
+          //if(storage.includes('OUTLET')) continue
           finalString += `  ${storage}\n`
           for(const product of this.products[source][company][storage]) {
             finalString += `   EAN: ${product.ean} | SKU: ${product.sku} | ILOŚĆ: ${product.quantity} | NAZWA: ${product.name.substring(0,50)} | CENA: ${product.price.sell.brutto}\n`
@@ -99,9 +102,14 @@ const cart = {
 
     //Save file
     await fs.writeFile(`./logs/lists/${today.day}-${today.month}-${today.year}.txt`,finalString)
-
+    console.log(`>> List created! <<`)
     //Update baselinker
-    //await this.updateBL()
+    await this.updateBL()
+    this.inProgress = false
+
+  },
+  checkStatus() {
+    return this.inProgress
   }
 }
 

@@ -9,6 +9,7 @@
   "dependencies": {
     "agenda": "^4.2.1",
     "axios": "^0.24.0",
+    "bcrypt": "^5.0.1",
     "cookie-parser": "~1.4.4",
     "cron": "^1.8.2",
     "debug": "~2.6.9",
@@ -16,6 +17,8 @@
     "ejs": "~2.6.1",
     "express": "~4.16.1",
     "http-errors": "~1.6.3",
+    "joi": "^17.6.0",
+    "lodash": "^4.17.21",
     "mongoose": "^6.1.4",
     "morgan": "~1.9.1",
     "puppeteer": "^13.0.1"

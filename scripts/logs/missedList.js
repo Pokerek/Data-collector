@@ -15,7 +15,8 @@ const missedList = {
       saveString += `Name: ${product.name} | SKU: ${product.sku} | EAN: ${product.ean} | Storage: ${product.storage_name} | ${product.info} \n`
     })
     
-    fs.writeFileSync(`../logs/missedList/${fileName}.txt`, saveString)
+    fs.writeFileSync(`./logs/missedList/${fileName}.txt`, saveString)
+    this.bufor = [] //clear bufor
   }
 }
 

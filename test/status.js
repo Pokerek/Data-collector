@@ -1,7 +1,8 @@
-const status = require('../scripts/database/status')
+const statuses = require('../controllers/database/statuses')
 
 const test = async () => {
-  await status.update()
+  const status = await statuses.getNotOrdered(251543)
+  console.log(status)
 }
 
 test()

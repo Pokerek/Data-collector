@@ -1,4 +1,24 @@
 const examples = {
+  productsTest: [
+    {
+      "storage": "warehouse",
+      "storage_id": "2845",
+      "order_product_id": "572878392",
+      "product_id": "GRYIMGELU0118",
+      "variant_id": "0",
+      "name": "Gra PC Spintires® - Aftermath DLC (DLC, wersja cyfrowa; ENG; od 3 lat)",
+      "attributes": "",
+      "sku": "K01541",
+      "ean": "5901234123457",
+      "location": "",
+      "warehouse_id": 0,
+      "auction_id": "10642065343",
+      "price_brutto": 21.99,
+      "tax_rate": 23,
+      "quantity": 1,
+      "weight": 0
+    }
+  ],
   storageList: {
     HURTEL: [{
       name: "Samsung S View Wallet etui kabura bookcase z inteligentną klapką okien...",
@@ -14,28 +34,6 @@ const examples = {
         sell: {
           netto: 30.24,
           brutto: 37.2
-        }
-      },
-      tax_rate: 23,
-      quantity: 1,
-      profit: 0,
-      location: '',
-      auction_id: 0
-    },
-    {
-      name: "Wozinsky Ring Armor pancerne hybrydowe etui pokrowiec + magnetyczny uchwyt Samsung Galaxy A51 różowy",
-      sku: "9111201919662",
-      ean: "9111201919662",
-      storage_id: 331,
-      storage_name: "HURTEL",
-      price: {
-        buy: {
-          netto: 0,
-          brutto: 0
-        },
-        sell: {
-          netto: 8.94,
-          brutto: 11
         }
       },
       tax_rate: 23,

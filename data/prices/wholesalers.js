@@ -666,7 +666,7 @@ const wholesalers = {
             login:'#ctl00_MainContent_tbLogin',
             password:'#ctl00_MainContent_tbHaslo',
             price:'.ceny > p > em',
-            submit: '#ctl00_MainContent_btZaloguj_Button',
+            submit: '#ctl00_MainContent_btZalogujNowyLayout2_Button',
             preLogin: false,
             search:'#ctl00_miWyszukiwanieProduktow',
             preLogout: false,

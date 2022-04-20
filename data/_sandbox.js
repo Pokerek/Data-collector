@@ -65,11 +65,11 @@ const testingSingle = async (storageName) => {
 
 //testingAll()
 
-//testingSingle("DMTRADE")
+testingSingle("AMIO")
 
 //const profit = prices.calculateProductProfit({buy: {netto: 11.37, brutto: 13.99}, sell: {netto: 16.26, brutto: 20.99}},23)
 
-//testingSingle('LAMEX')
+//testingSingle('DMTRADE')
 
 const outletTest = async () => {
 
@@ -102,4 +102,4 @@ const outletTest = async () => {
 }
 
 //orders.updateFromData(2022 , 1, 20)
-outletTest()
+//outletTest()

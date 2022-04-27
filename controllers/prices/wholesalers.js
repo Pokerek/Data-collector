@@ -1,4 +1,4 @@
-require('dotenv').config()
+require('dotenv').config({path:'../.env'})
 
 const wholesalers = {
     HURTEL:{
@@ -11,7 +11,7 @@ const wholesalers = {
             password:process.env.hurtel_pass || '',
         },
         alerts:{
-            before: ['#ckdsclmrshtdwn_v2 > span'],
+            before: '#ckdsclmrshtdwn_v2 > span',
             after: false
         },
         selectors:{
@@ -21,7 +21,6 @@ const wholesalers = {
             employee: false,
             password:'#user_pass',
             price:'#search > div > div.product__prices > strong.price',
-            pricePos: 0,
             submit: 'div.signin_buttons.col-md-10.col-12 > button',
             preLogin: false,
             search: '.menu_search__input',
@@ -32,13 +31,12 @@ const wholesalers = {
             lastChildName: false,
             searchWait: false
         },
-        typeSearch: ['sku','ean','name'],
+        typeSearch: ['SKU','EAN'],
         priceOptions: {
             netto: true,
-            position: {
-                left: false,
-                right:'zł'
-            }
+            position: 'right',
+            word: 'zł'
+
         }
     },
     PARTNERTELE:{
@@ -61,7 +59,6 @@ const wholesalers = {
             employee: false,
             password:'#password',
             price:'#price-count',
-            pricePos: 0,
             submit: '#submitBtn',
             preLogin: false,
             search: '#search_query',
@@ -73,13 +70,10 @@ const wholesalers = {
             searchWait: false,
             special: false
         },
-        typeSearch: ['ean','sku','name'],
+        typeSearch: ['EAN','SKU'],
         priceOptions: {
             netto: true,
-            position: {
-                left: false,
-                right: false
-            }
+            position: false
         }
     },
     EPSTRYK:{
@@ -92,7 +86,7 @@ const wholesalers = {
             password:process.env.epstryk_pass || ''
         },
         alerts:{
-            before: ['#ckdsclmrshtdwn_v2 > span'],
+            before: '#ckdsclmrshtdwn_v2 > span',
             after: false
         },
         selectors:{
@@ -102,7 +96,6 @@ const wholesalers = {
             employee: false,
             password:'#user_pass',
             price:'#search > div > div > div.product_prices > span.price',
-            pricePos: 0,
             submit: 'div.signin_buttons.col-md-10.col-xs-12 > button',
             preLogin: false,
             search: '.menu_search__input',
@@ -114,13 +107,12 @@ const wholesalers = {
             searchWait: false,
             special: false
         },
-        typeSearch: ['ean','sku','name'],
+        typeSearch: ['SKU','EAN'],
         priceOptions: {
             netto: false,
-            position: {
-                left: false,
-                right:'zł'
-            }
+            position: 'right',
+            word: 'zł'
+
         }
     },
     DMTRADE:{
@@ -133,17 +125,16 @@ const wholesalers = {
             password:process.env.dmtrade_pass || ''
         },
         alerts:{
-            before: ['button.cc-nb-okagree'],
+            before: 'button.cc-nb-okagree',
             after: false
         },
         selectors:{
-            name:'.product-a h3 > a:nth-child(2)',
+            name:'h3 > a',
             notFound: '#content > div.dodatkowe > div > strong',
             login:'input[name=umail]',
             employee: false,
             password:'input[name=password]',
-            price:'.product-a .tax > span',
-            pricePos: 0,
+            price:'span.tax > span',
             submit:'input.button' ,
             preLogin: false,
             search: '#input-szukaj',
@@ -155,13 +146,10 @@ const wholesalers = {
             searchWait: false,
             special: false
         },
-        typeSearch: ['sku','ean','name'],
+        typeSearch: ['SKU','EAN'],
         priceOptions: {
             netto: false,
-            position: {
-                left: false,
-                right: false
-            }
+            position: false
         }
     },
     GADGETMASTER:{
@@ -174,7 +162,7 @@ const wholesalers = {
             password:process.env.gadgetmaster_pass || ''
         },
         alerts:{
-            before: ['#ckdsclmrshtdwn_v2 > span'],
+            before: '#ckdsclmrshtdwn_v2 > span',
             after: false
         },
         selectors:{
@@ -184,7 +172,6 @@ const wholesalers = {
             employee: false,
             password:'#user_pass',
             price:'strong.price',
-            pricePos: 0,
             submit: 'div.signin_buttons.col-md-10.col-12 > button',
             preLogin: false,
             search: '.menu_search__input',
@@ -196,13 +183,11 @@ const wholesalers = {
             lastChildName: false,
             searchWait: false
         },
-        typeSearch: ['sku','ean','name'],
+        typeSearch: ['SKU','EAN'],
         priceOptions: {
             netto: true,
-            position: {
-                left: false,
-                right:'zł'
-            }
+            position: 'right',
+            word: 'zł'
         }
     },
     TAYMA:{
@@ -215,7 +200,7 @@ const wholesalers = {
             password:process.env.tayma_pass || ''
         },
         alerts:{
-            before: ['#ckdsclmrshtdwn_v2 > span'],
+            before: '#ckdsclmrshtdwn_v2 > span',
             after: false
         },
         selectors:{
@@ -225,7 +210,6 @@ const wholesalers = {
             employee: false,
             password:'#signin_pass_input',
             price:'#search > div > div > div.product_prices > span.price',
-            pricePos: 0,
             submit: '#signin-form_box_sub_1 > form > button',
             preLogin: false,
             search: '#menu_search_text',
@@ -237,19 +221,17 @@ const wholesalers = {
             searchWait: false,
             special: false
         },
-        typeSearch: ['ean','sku','name'],
+        typeSearch: ['EAN','SKU'],
         priceOptions: {
             netto: true,
-            position: {
-                left: false,
-                right:'zł'
-            }
+            position: 'right',
+            word: 'zł'
         }
     },
     B2BTRADE:{
         urls:{
-            login: 'http://b2btrade.eu/',
-            logout:'http://b2btrade.eu/Account/Logout'
+            login: 'https://ext.btp.link/Usr/Account/LogIn/?ReturnUrl=%2F',
+            logout:'https://ext.btp.link/Usr/Account/LogOut'
         },
         access:{
             login:process.env.b2btrade_login || '',
@@ -261,16 +243,15 @@ const wholesalers = {
             after: false
         },
         selectors:{
-            name:'div h3 > a.green',
-            notFound: '#main .items-not-found',
-            login:'#Login',
-            employee:'#UserName',
-            password:'#Password',
-            price:'.visible-detail div:nth-child(3) > span.green',
-            pricePos: 0,
-            submit: '#loginForm button[type="submit"]',
-            preLogin: '#main > div.header-container.clearfix > div.header-menu-info-container > div.clearfix > button:nth-child(2)',
-            search: '#searchPanelContainer input.search',
+            name:'td.sl-value',
+            notFound: '#SLPageSearchItems > div > div > p',
+            login:'#UserCredentials_ClientMnemonic',
+            employee:'#UserCredentials_Login',
+            password:'#UserCredentials_Password',
+            price:'tr.sl-client-price > td.sl-number-column',
+            submit: '#btnLogin',
+            preLogin: false,
+            search: '#SearchParameters_Query',
             preLogout: false
         },
         options: {
@@ -279,13 +260,11 @@ const wholesalers = {
             searchWait: false,
             special: false
         },
-        typeSearch: ['ean','sku','name'],
+        typeSearch: ['EAN','SKU'],
         priceOptions: {
             netto: true,
-            position: {
-                left: ' ',
-                right: false
-            }
+            position: 'right',
+            word: 'zł'
         }
     },
     ACTION:{
@@ -307,7 +286,6 @@ const wholesalers = {
             login:'#UserName',
             password:'#Password',
             price:'#default-list span.price-orig',
-            pricePos: 0,
             submit: '#login-submit-button',
             preLogin: false,
             search: '#main-search-keyword',
@@ -319,13 +297,11 @@ const wholesalers = {
             searchWait: false,
             special: false
         },
-        typeSearch: ['ean','sku','name'],
+        typeSearch: ['EAN','SKU'],
         priceOptions: {
             netto: true,
-            position: {
-                left: false,
-                right:'PLN'
-            }
+            position: 'right',
+            word: 'PLN'
         }
     },
     ABONLINE:{
@@ -347,7 +323,6 @@ const wholesalers = {
             login:'#jsFrmLoginLogin',
             password:'#jsFrmLoginPass',
             price:'#productNettoPriceID .pricex',
-            pricePos: 0,
             submit: '#jsBtnSiteLogin',
             preLogin: '#accept_cookie',
             search:'#inpSearchBoxPhrase',
@@ -357,16 +332,13 @@ const wholesalers = {
         options: {
             table: false,
             lastChildName: false,
-            searchWait: 1500,
+            searchWait: 1000,
             special: false
         },
-        typeSearch: ['sku','ean','name'],
+        typeSearch: ['EAN','SKU'],
         priceOptions: {
             netto: true,
-            position: {
-                left: false,
-                right: false
-            }
+            position: false
         }
     },
     BOSSOFTOYS:{
@@ -388,7 +360,6 @@ const wholesalers = {
             login:'#login',
             password:'#password',
             price:'#grid table > tbody > tr:nth-child(1) > td:nth-child(6)',
-            pricePos: 0,
             submit: '.loginButton',
             preLogin: false,
             search:'#txtSearchString',
@@ -400,13 +371,11 @@ const wholesalers = {
             searchWait: 1000,
             special: false
         },
-        typeSearch: ['sku','ean','name'],
+        typeSearch: ['SKU','EAN'],
         priceOptions: {
             netto: true,
-            position: {
-                left: false,
-                right:'PLN'
-            }
+            position: 'right',
+            word: 'PLN'
         }
     },
     VIVAB2B:{
@@ -419,7 +388,7 @@ const wholesalers = {
             password:process.env.vivab2b_pass || ''
         },
         alerts:{
-            before: ['#selly-cookies > div > a'],
+            before: '#selly-cookies > div > a',
             after: false
         },
         selectors:{
@@ -428,7 +397,6 @@ const wholesalers = {
             login:'#llogin',
             password:'#lpassword',
             price:'.product-description .price strong',
-            pricePos: 0,
             submit: '#login-box input[type="submit"]',
             preLogin: false,
             search:'#query',
@@ -440,13 +408,11 @@ const wholesalers = {
             searchWait: false,
             special: false
         },
-        typeSearch: ['sku','ean','name'],
+        typeSearch: ['SKU','EAN'],
         priceOptions: {
-            netto: false,
-            position: {
-                left: false,
-                right:'zł'
-            }
+            netto: true,
+            position: 'right',
+            word: 'zł'
         }
     },
 
@@ -469,7 +435,6 @@ const wholesalers = {
             login:'#Uzytkownik',
             password:'#Haslo',
             price:'#tabela-lista-produktow .CenaPoRabacie .netto',
-            pricePos: 0,
             submit: '#login-form button[type="submit"]',
             preLogin: false,
             search:'.kontrolka-Wyszukiwarka input',
@@ -481,13 +446,11 @@ const wholesalers = {
             searchWait: false,
             special: false
         },
-        typeSearch: ['sku','ean','name'],
+        typeSearch: ['SKU','EAN'],
         priceOptions: {
             netto: true,
-            position: {
-                left: false,
-                right:'PLN'
-            }
+            position: 'right',
+            word: 'PLN'
         }
     },
     
@@ -501,7 +464,7 @@ const wholesalers = {
             password:process.env.telforceone_pass || ''
         },
         alerts:{
-            before: ['#ue_push_dialog > span'],
+            before: '#ue_push_dialog > span',
             after: false
         },
         selectors:{
@@ -510,7 +473,6 @@ const wholesalers = {
             login:'#headerLoginUser',
             password:'#headerLoginPass',
             price:'#gridView .price',
-            pricePos: 0,
             submit: '#loginButton',
             preLogin: '#menu_open .login.logout-button',
             search:'#search-input',
@@ -520,16 +482,14 @@ const wholesalers = {
         options: {
             table: false,
             lastChildName: false,
-            searchWait: 1500,
+            searchWait: 1200,
             special: false
         },
-        typeSearch: ['sku','ean','name'],
+        typeSearch: ['SKU','EAN'],
         priceOptions: {
             netto: false,
-            position: {
-                left: 'd',
-                right:'PLN'
-            }
+            position: 'right',
+            word: 'PLN'
         }
     },
 
@@ -543,7 +503,7 @@ const wholesalers = {
             password:process.env.lamex_pass || ''
         },
         alerts:{
-            before: ['#cookies > div > a'],
+            before: '#cookies > div > a',
             after: false
         },
         selectors:{
@@ -551,8 +511,7 @@ const wholesalers = {
             notFound: 'div.komunikat',
             login:'#signin_username',
             password:'#signin_password',
-            price:'#product-view .productGallery .price-all > .price',
-            pricePos: 1,
+            price:'#product-view .price',
             submit: '#register > fieldset > div:nth-child(5) > input',
             preLogin: false,
             search:'input.dark',
@@ -564,13 +523,11 @@ const wholesalers = {
             searchWait: false,
             special: false
         },
-        typeSearch: ['sku','name'],
+        typeSearch: ['SKU','EAN'],
         priceOptions: {
             netto: true,
-            position: {
-                left: false,
-                right:'zł'
-            }
+            position: 'right',
+            word: 'zł'
         }
     },
 
@@ -584,7 +541,7 @@ const wholesalers = {
             password:process.env.lechpol_pass || ''
         },
         alerts:{
-            before: ['div.modal-footer > button'],
+            before: 'div.modal-footer > button',
             after: false
         },
         selectors:{
@@ -593,7 +550,6 @@ const wholesalers = {
             login:'#login_email',
             password:'#login_password',
             price:'div.price-gross > span.price',
-            pricePos: 0,
             submit: 'form > div.text-center.d-sm-flex.mb-5.align-items-center.justify-content-between > button',
             preLogin: false,
             search:'#searchbox_query',
@@ -603,15 +559,13 @@ const wholesalers = {
             table: false,
             lastChildName: false,
             searchWait: false,
-            special: 'LECHPOL'
+            special: false
         },
-        typeSearch: ['sku','ean','name'],
+        typeSearch: ['SKU','EAN'],
         priceOptions: {
             netto: false,
-            position: {
-                left: false,
-                right: false
-            }
+            position: 'right',
+            word: 'zł'
         }
     },
     
@@ -625,7 +579,7 @@ const wholesalers = {
             password:process.env.amio_pass || ''
         },
         alerts:{
-            before: ['body > footer > div.message-popup-ui.cookie-notice-ui.box-ui.message-popup-lq.bottom-ui > i'],
+            before: 'body > footer > div.message-popup-ui.cookie-notice-ui.box-ui.message-popup-lq.bottom-ui > i',
             after: false
         },
         selectors:{
@@ -633,8 +587,7 @@ const wholesalers = {
             notFound: 'p.message-bar-ui',
             login:'input[name=email]',
             password:'input[name=password]',
-            price:'div:nth-child(2).product-item-ui .final-price-column-ui > .price-ui',
-            pricePos: 0,
+            price:'div.final-price-column-ui > p',
             submit: 'button.sign-in-lq.enter-key-trigger-lq.button-ui.login-button-ui',
             preLogin: false,
             search:'input.search-ui',
@@ -647,13 +600,11 @@ const wholesalers = {
             searchWait: false,
             special: false
         },
-        typeSearch: ['sku','ean','name'],
+        typeSearch: ['SKU','EAN'],
         priceOptions: {
             netto: false,
-            position: {
-                left: false,
-                right:'PLN'
-            }
+            position: 'right',
+            word: 'PLN'
         }
     },
 
@@ -667,7 +618,7 @@ const wholesalers = {
             password:process.env.fddistribution_pass || ''
         },
         alerts:{
-            before: ['#selly-cookies > div > a'],
+            before: '#selly-cookies > div > a',
             after: false
         },
         selectors:{
@@ -676,7 +627,6 @@ const wholesalers = {
             login: '#llogin',
             password: '#lpassword',
             price: 'div.price > span.item.itemAdd > strong',
-            pricePos: 0,
             submit: 'input.btn.color1',
             preLogin: false,
             search: '#query',
@@ -689,13 +639,11 @@ const wholesalers = {
             searchWait: false,
             special: false
         },
-        typeSearch: ['sku','ean','name'],
+        typeSearch: ['SKU','EAN'],
         priceOptions: {
             netto: false,
-            position: {
-                left: false,
-                right:'zł'
-            }
+            position: 'right',
+            word: 'zł'
         }
     },
     
@@ -718,7 +666,6 @@ const wholesalers = {
             login:'#ctl00_MainContent_tbLogin',
             password:'#ctl00_MainContent_tbHaslo',
             price:'.ceny > p > em',
-            pricePos: 0,
             submit: '#ctl00_MainContent_btZalogujNowyLayout2_Button',
             preLogin: false,
             search:'#ctl00_miWyszukiwanieProduktow',
@@ -734,13 +681,11 @@ const wholesalers = {
         special: {
             search:'http://aptel.pl/ProduktyWyszukiwanie.aspx?search='
         },
-        typeSearch: ['sku','name'],
+        typeSearch: ['SKU'],
         priceOptions: {
-            netto: false,
-            position: {
-                left: false,
-                right:'PLN'
-            }
+            netto: true,
+            position: 'right',
+            word: 'PLN'
         }
     },
 
@@ -763,7 +708,6 @@ const wholesalers = {
             login:'input.orderForm__textfield[name=login]',
             password:'input.orderForm__textfield[name=password]',
             price:'.productFull__quick_info > div:nth-child(4) > .productFull--price > span',
-            pricePos: 0,
             submit: 'label.btn.btn--noArrow.orderForm__submit',
             preLogin: false,
             search:'input.searchTop__textfield.grow',
@@ -776,20 +720,18 @@ const wholesalers = {
             searchWait: false,
             special: false
         },
-        typeSearch: ['ean','sku','name'],
+        typeSearch: ['EAN','SKU'],
         priceOptions: {
             netto: true,
-            position: {
-                left: false,
-                right:'ZŁ'
-            }
+            position: 'right',
+            word: 'ZŁ'
         }
       },
 
-      SONIA:{
+    SONIA:{ // old Sonia
         urls:{
-            login: 'https://b2b.sonia.pl/',
-            logout: 'https://b2b.sonia.pl/wyloguj.html'
+            login: 'https://sklep.sonia.pl/',
+            logout: 'https://sklep.sonia.pl/wyloguj.html'
         },
         access:{
             login:process.env.sonia_login || '',
@@ -818,7 +760,7 @@ const wholesalers = {
             searchWait: false,
             special: false
         },
-        typeSearch: ['ean','sku','name'],
+        typeSearch: ['EAN','SKU'],
         priceOptions: {
             netto: true,
             position: {
@@ -827,6 +769,44 @@ const wholesalers = {
             }
         }
     },
+    //   SONIA:{ //new Sonia
+    //     urls:{
+    //         login: 'https://b2b.sonia.pl/',
+    //         logout: 'https://b2b.sonia.pl/wyloguj.html'
+    //     },
+    //     access:{
+    //         login:process.env.sonia_login || '',
+    //         password:process.env.sonia_pass || ''
+    //     },
+    //     alerts:{
+    //         before: '#cookies-info-modal-accept-btn',
+    //         after: false
+    //     },
+    //     selectors:{
+    //         name:'',
+    //         notFound: '',
+    //         login:'input[type=email]',
+    //         password:'input[type=password]',
+    //         price:'',
+    //         submit: 'button.btn.btn-submit',
+    //         preLogin: '.open_profile.login_modal_open',
+    //         search:'input[type=search]',
+    //         preLogout: false,
+    //         logout: false
+    //     },
+    //     options: {
+    //         table: false,
+    //         lastChildName: false,
+    //         searchWait: false,
+    //         special: false
+    //     },
+    //     typeSearch: ['EAN','SKU'],
+    //     priceOptions: {
+    //         netto: true,
+    //         position: 'right',
+    //         word: 'zł'
+    //     }
+    // },
 
     SILIT:{
         urls:{
@@ -838,7 +818,7 @@ const wholesalers = {
             password:process.env.silit_pass || ''
         },
         alerts:{
-            before: ['#cookie-policy-remove-button'],
+            before: '#cookie-policy-remove-button',
             after: false
         },
         selectors:{
@@ -847,7 +827,6 @@ const wholesalers = {
             login:'#email_id',
             password:'#password_id',
             price:'#offerTable .product-list-item .abs-item-price > span',
-            pricePos: 0,
             submit: '#login_id',
             preLogin: false,
             search:'#searchInput_cartPreview',
@@ -860,13 +839,11 @@ const wholesalers = {
             searchWait: false,
             special: false
         },
-        typeSearch: ['sku', 'name'],
+        typeSearch: ['SKU'],
         priceOptions: {
             netto: true,
-            position: {
-                left: false,
-                right:'zł'
-            }
+            position: 'right',
+            word: 'zł'
         }
       },
     
@@ -889,7 +866,6 @@ const wholesalers = {
             login:'#inputEmail',
             password:'#inputPassword',
             price:'div.product-show__price-value',//po wejściu do strony produktu
-            pricePos: 0,
             submit: 'button.btn.btn-lg.btn-primary.btn-block',
             preLogin: false,
             search:'#main-searchbar',
@@ -902,13 +878,11 @@ const wholesalers = {
             searchWait: false,
             special: "ORNO"
         },
-        typeSearch: ['sku','ean','name'],
+        typeSearch: ['SKU','EAN'],
         priceOptions: {
             netto: true,
-            position: {
-                left: false,
-                right:'zł'
-            }
+            position: 'right',
+            word: 'zł'
         }
     },
     
@@ -922,8 +896,8 @@ const wholesalers = {
             password:process.env.topex_pass || ''
         },
         alerts: {
-            before:['#accept-cookies-checkbox'],
-            after:['.swal2-container .swal2-confirm','.swal2-container .swal2-confirm'],
+            before:'#accept-cookies-checkbox',
+            after:['button.swal2-confirm.styled'],
         },
         selectors:{
             name:'h2.product-name.uppercase.large-12.columns > a', 
@@ -931,7 +905,6 @@ const wholesalers = {
             login:'#email',
             password:'#pass',
             price:'p.price > span',
-            pricePos: 0,
             submit: '#send2',
             preLogin: false,
             search:'#search',
@@ -944,13 +917,50 @@ const wholesalers = {
             searchWait: false,
             special: false
         },
-        typeSearch: ['sku','ean','name'],
+        typeSearch: ['SKU','EAN'],
         priceOptions: {
             netto: true,
-            position: {
-                left: false,
-                right:'zł'
-            }
+            position: 'right',
+            word: 'zł'
+        }
+    },
+
+    K2:{
+        urls:{
+            login: 'https://k2distribution.pl/login/',
+            logout:'https://k2distribution.pl/login/logout'
+        },
+        access:{
+            login:process.env.k2_login || '',
+            password:process.env.k2_pass || ''
+        },
+        alerts: {
+            before:false,
+            after:false,
+        },
+        selectors:{
+            name:'div.product-name > a > span', 
+            notFound:'span.list-empty', 
+            login:'input[name=email]',
+            password:'input[name=password]',
+            price:'span > span.core_priceFormat',
+            submit: 'button.btn.btn-primary.btn-lg.btn-register-confirm',
+            preLogin: false,
+            search:'div.header_middle_content_searchbox_input_wrapper > input',
+            preLogout: false,
+            logout: false
+        },
+       options: {
+            table: false,
+            lastChildName: false,
+            searchWait: true,
+            special: false
+        },
+        typeSearch: ['EAN', 'SKU'],
+        priceOptions: {
+            netto: true,
+            position: 'right',
+            word: 'zł Netto'
         }
     },
 
@@ -1063,48 +1073,6 @@ const wholesalers = {
             return products;
         }
     },*/
-
-    K2:{
-        urls:{
-            login: 'https://k2distribution.pl/login/',
-            logout:'https://k2distribution.pl/login/logout'
-        },
-        access:{
-            login:process.env.k2_login || '',
-            password:process.env.k2_pass || ''
-        },
-        alerts: {
-            before:false,
-            after:false,
-        },
-        selectors:{
-            name:'.product-desc .product-name span', 
-            notFound: '.products-list-page div.col-sm-9 > .row .list-empty', 
-            login:'.logins input[name="email"]',
-            password:'.logins input[name="password"]',
-            price:'.product-desc .product-price > span:nth-child(1) > span',
-            pricePos: 0,
-            submit: '.logins button[name="submit"]',
-            preLogin: false,
-            search:'.search-box input',
-            preLogout: false,
-            logout: false
-        },
-       options: {
-            table: false,
-            lastChildName: false,
-            searchWait: false,
-            special: false
-        },
-        typeSearch: ['ean','sku','name'],
-        priceOptions: {
-            netto: true,
-            position: {
-                left: false,
-                right:'zł'
-            }
-        }
-    },
 
     /*HOMESCREEN:{
         urls:{

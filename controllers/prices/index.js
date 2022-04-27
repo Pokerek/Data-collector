@@ -127,16 +127,24 @@ const prices = {
         if(selectors) {
             for(let i = 0; i < selectors.length; i++) {
                 const selector = selectors[i]
-                await Promise.race([
-                    page.waitForNavigation(selector),
-                    page.waitForTimeout(1500)
-                ])
-                const loaded = await page.evaluate((selector) => {
-                    return document.querySelector(selector) ? true : false}, 
-                    selector)
-                if(loaded) { //Banner loaded
-                    await page.click(selector)
-                    await page.waitForTimeout(1000)
+                page.waitForTimeout(1500)
+                let check_selector = await page.evaluate(() => {
+                            return document.querySelector(selector)
+                        }, selector)
+
+                if(check_selector)
+                {
+                    await Promise.race([
+                        page.waitForNavigation(selector),
+                        page.waitForTimeout(1500)
+                    ])
+                    const loaded = await page.evaluate((selector) => {
+                        return document.querySelector(selector) ? true : false}, 
+                        selector)
+                    if(loaded) { //Banner loaded
+                        await page.click(selector)
+                        await page.waitForTimeout(1000)
+                    }
                 }
             }
         }
@@ -223,7 +231,7 @@ const prices = {
         if(options.position.right) {
             priceHTML = priceHTML.slice(0,priceHTML.indexOf(options.position.right)-1)
         }
-        const price = priceHTML.replaceAll(',','.') * quantity
+        const price = parseFloat(priceHTML.replaceAll(',','.')) * quantity
         if (options.netto) {
             productPrice.netto = price || 0
             productPrice.brutto = this.bruttoPrice(price,tax) || 0

@@ -114,10 +114,10 @@ const baselinker = {
           data:info,
           
       });
-      console.log('Product ID by storage found.');
+      
       return [load.data.products[0].product_id]
     } catch(err) {
-      console.log('Looking for product ID by storage failed.');
+      
       return false
     }
   },
@@ -154,10 +154,10 @@ const baselinker = {
           data:info,
           
       });
-      console.log('Product ID by inventory found.');
-      return load.data//[Object.keys(load.data.products[Object.keys(load.data.products)[0]].stock)[0],load.data.products[Object.keys(load.data.products)[0]].id]
+
+      return [load.data.products[0].product_id]//[Object.keys(load.data.products[Object.keys(load.data.products)[0]].stock)[0],load.data.products[Object.keys(load.data.products)[0]].id]
     } catch(err) {
-        console.log('Looking for product ID by inventory failed.');
+
         return err
     }
   },
@@ -194,10 +194,9 @@ const baselinker = {
           data:info,
           
       });
-      console.log('Product ID by external storage found.');
+
       return [load.data.products[0].product_id]
     } catch(err) {
-        console.log('Looking for product ID by external storage failed.');
         return err
     }
   },
@@ -227,12 +226,9 @@ const baselinker = {
         products.push(load.data.products[product])
       }
 
-      console.log('Product data by external storage found.');
-
       return products[0]
 
     } catch(err) {
-      console.log('Looking for product data by external storage failed.');
       return false
     }
   },
@@ -259,12 +255,9 @@ const baselinker = {
         products.push(load.data.products[product])
       }
 
-      console.log('Product data by storage found.');
-
       return products[0]
 
     } catch(err) {
-      console.log('Looking for product data by storage failed.');
       return false
     }
   },

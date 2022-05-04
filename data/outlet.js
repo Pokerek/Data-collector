@@ -47,6 +47,10 @@ const Outlet = mongoose.model('Outlet_product', outletSchema)
 
 
 const outlet={
+  async wait()
+  {
+    return new Promise(resolve => {setTimeout(resolve, 5000)})
+  },
   async create(data) {
     await (new Outlet(data)).save()
   },
@@ -171,7 +175,11 @@ const outlet={
       }
       
       await this.create(product)
-      console.log("Dodano "+ iteration +" z "+Outlet_products.length+"produktów.")
+      if(iteration%5==0)
+      {
+        console.log("Dodano "+ iteration +" z "+Outlet_products.length+"produktów.")
+      }
+      
       iteration++
     }
 

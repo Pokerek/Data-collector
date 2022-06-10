@@ -16,6 +16,7 @@ async function outletEnter()
 
     await outlet.loadOutlet(2022, 5, 2)
     await outlet.wait()
+
     await outlet.addOutletToSystem()
 }
 outletEnter()

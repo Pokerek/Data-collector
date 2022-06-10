@@ -548,45 +548,56 @@ const baselinker = {
         price=outletproduct.price.sell.brutto*0,7;
         break;
       case outletproduct.price.sell.brutto<=100:
-        price=outletproduct.price.sell.brutto*0,8;
+        price=outletproduct.price.sell.brutto*0,7;
         break;
       case outletproduct.price.sell.brutto>100:
-        price=outletproduct.price.sell.brutto*0,9;
+        price=outletproduct.price.sell.brutto*0,7;
         break;
       default:
         price=outletproduct.price.sell.brutto;
         break;
     }
     
+    let paramsObj={
+      "inventory_id": "380",
+      "is_bundle": false,
+      "ean": outletproduct.ean,
+        "sku": outletproduct.sku,
+        "tax_rate": 23,
+        "weight": outletproduct.weight,
+        "category_id": categoryId,
+        "prices": {
+            "351": price
+        },
+        "stock": {
+            "bl_555": outletproduct.quantity,
+        },
+        "text_fields": {
+          "name": outletproduct.found_data.name,
+          "description": outletproduct.found_data.description,
+          "description_extra1": outletproduct.found_data.description_extra1,
+          "description_extra2": outletproduct.found_data.description_extra2,
+          "description_extra3": outletproduct.found_data.description_extra3,
+          "description_extra4": outletproduct.found_data.description_extra4,
+          "features": featuresPreparation
+        },
+        "images": imagesPreparation,
+    }
+
+    let filtered={}
+    Object.keys(paramsObj).forEach(param =>
+    {
+      if(paramsObj[param]!='' || paramsObj[param]!=undefined || paramsObj[param]!=false)
+      {
+        filtered[param]=paramsObj[param]
+      }
+    })
     
+      
     
     const info = new URLSearchParams({
       "method":"addInventoryProduct",
-      "parameters":JSON.stringify({
-        "inventory_id": "380",
-        "is_bundle": false,
-        "ean": outletproduct.ean,
-          "sku": outletproduct.sku,
-          "tax_rate": 23,
-          "weight": outletproduct.weight,
-          "category_id": categoryId,
-          "prices": {
-              "351": price
-          },
-          "stock": {
-              "bl_555": outletproduct.quantity,
-          },
-          "text_fields": {
-            "name": outletproduct.found_data.name,
-            "description": outletproduct.found_data.description,
-            "description_extra1": outletproduct.found_data.description_extra1,
-            "description_extra2": outletproduct.found_data.description_extra2,
-            "description_extra3": outletproduct.found_data.description_extra3,
-            "description_extra4": outletproduct.found_data.description_extra4,
-            "features": featuresPreparation
-          },
-          "images": imagesPreparation,
-        }).replaceAll(':',':+').replaceAll(';',':')
+      "parameters":JSON.stringify(filtered).replaceAll(':',':+').replaceAll(';',':')
     }).toString().replaceAll('%2B','+')
 
     try{

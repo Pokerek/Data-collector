@@ -6,8 +6,8 @@ const url = process.env.DB_URL
 const options = {
   
 }
-
-mongoose.connect('mongodb://localhost/silesiaDB')
+// 'mongodb://localhost/silesiaDB'
+mongoose.connect(url)
   .then(() => console.log('Connect to DB.'))
   .catch(err => console.error('Could not connect to MongoDB...', err))
 

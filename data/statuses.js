@@ -1,8 +1,8 @@
-const mongoose = require('./connect')
+const mongoose = require('./database/mongoose')
 const baselinker = require('./baselinker')
 
 const statusSchema = new mongoose.Schema({
-  id: String,
+  status_id: String,
   name: String
 })
 
@@ -15,7 +15,7 @@ async function createStatus(data) {
 
 function convertStatus(status) {
   return {
-    id: status.id,
+    status_id: status.id,
     name: status.name
   }
 }
@@ -27,6 +27,8 @@ async function loadStatus () {
 
 async function updateStatus () {
   const data = await loadStatus()
+
+  
   for (let index in data) {
     const status = await statusExist((data[index]).id)
     if(status) {
@@ -41,6 +43,8 @@ async function updateStatus () {
 }
 
 async function statusExist(id) {
-  const status = await Status.find({id: id})
+  const status = await Status.find({status_id: id})
   return status[0]
 }
+
+module.exports = updateStatus

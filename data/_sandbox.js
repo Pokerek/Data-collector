@@ -1,7 +1,8 @@
 const baselinker = require('./baselinker');
 const outlet = require('./outlet');
-/*const products = require('./products');
 const statuses = require('./statuses')
+/*const products = require('./products');
+
 const storages = require('./storages')
 const examples = require('./examples')
 const prices = require('./prices/prices')
@@ -19,4 +20,11 @@ async function outletEnter()
 
     await outlet.addOutletToSystem()
 }
-outletEnter()
+// outletEnter()
+
+
+async function statusUpdate()
+{
+    await statuses()
+}
+statusUpdate()

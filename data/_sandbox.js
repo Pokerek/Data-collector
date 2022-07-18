@@ -20,11 +20,11 @@ async function outletEnter()
 
     await outlet.addOutletToSystem()
 }
-// outletEnter()
+outletEnter()
 
 
-async function statusUpdate()
-{
-    await statuses()
-}
-statusUpdate()
+// async function statusUpdate()
+// {
+//     await statuses()
+// }
+// statusUpdate()

@@ -7,7 +7,7 @@ const options = {
   
 }
 // 'mongodb://localhost/silesiaDB'
-mongoose.connect(url)
+mongoose.connect('mongodb://localhost/silesiaDB')
   .then(() => console.log('Connect to DB.'))
   .catch(err => console.error('Could not connect to MongoDB...', err))
 
